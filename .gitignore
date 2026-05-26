@@ -1,0 +1,11 @@
+# Ignorar archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignorar archivos de entorno virtual (por si acaso)
+venv/
+env/
+
+# Ignorar base de datos local si hubiera
+*.sqlite3
