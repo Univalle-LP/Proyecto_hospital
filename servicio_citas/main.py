@@ -17,7 +17,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Modelos de Datos Actualizados
+# ==========================================
+# 1. MODELOS DE DATOS
+# ==========================================
 class Cita(BaseModel):
     paciente: str
     doctor: str
@@ -33,6 +35,12 @@ class LoginData(BaseModel):
     usuario: str
     password: str
 
+class EstadoCita(BaseModel):
+    estado: str
+
+# ==========================================
+# 2. CONFIGURACIÓN DE BASE DE DATOS
+# ==========================================
 db_config = {
     'host': 'db_citas',
     'port': 3306,
@@ -49,7 +57,7 @@ def inicializar_bd():
             conexion = mysql.connector.connect(**db_config)
             cursor = conexion.cursor()
             
-            # 1. Tabla de Citas
+            # Tabla de Citas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS citas (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,7 +69,7 @@ def inicializar_bd():
                 )
             """)
             
-            # 2. Tabla de Usuarios
+            # Tabla de Usuarios
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,7 +80,7 @@ def inicializar_bd():
                 )
             """)
             
-            # 3. NUEVA: Tabla de Horarios Ofrecidos por los Médicos
+            # Tabla de Horarios Ofrecidos por los Médicos
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS horarios_disponibles (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,6 +116,39 @@ def inicializar_bd():
 
 inicializar_bd()
 
+# ==========================================
+# 3. FUNCIÓN DE COMUNICACIÓN CON RABBITMQ
+# ==========================================
+def notificar_rabbitmq(cita_id, estado):
+    # Busca los detalles de la cita y lanza el evento a RabbitMQ
+    try:
+        conexion = mysql.connector.connect(**db_config)
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT paciente, doctor, fecha FROM citas WHERE id = %s", (cita_id,))
+        cita = cursor.fetchone()
+        cursor.close()
+        conexion.close()
+
+        if cita:
+            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+            channel = connection.channel()
+            channel.queue_declare(queue='citas_pendientes')
+            mensaje = {
+                "id_cita": cita_id,
+                "paciente": cita["paciente"],
+                "doctor": cita["doctor"],
+                "fecha": cita["fecha"],
+                "estado": estado
+            }
+            channel.basic_publish(exchange='', routing_key='citas_pendientes', body=json.dumps(mensaje))
+            connection.close()
+    except Exception as err_mq:
+        print(f"⚠️ Evento RabbitMQ omitido: {err_mq}")
+
+# ==========================================
+# 4. ENDPOINTS DE LA API (RUTAS)
+# ==========================================
+
 @app.post("/login")
 def login(datos: LoginData):
     try:
@@ -125,7 +166,6 @@ def login(datos: LoginData):
     except Error as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Registrar un bloque de tiempo (Doctor)
 @app.post("/horarios")
 def agregar_horario(h: Horario):
     try:
@@ -139,7 +179,6 @@ def agregar_horario(h: Horario):
     except Error as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Obtener todos los horarios médicos
 @app.get("/horarios")
 def obtener_horarios():
     try:
@@ -159,11 +198,11 @@ def agendar_cita(cita: Cita):
         conexion = mysql.connector.connect(**db_config)
         cursor = conexion.cursor()
         
-        # 1. Insertamos el registro de la cita de forma regular
+        # 1. Insertamos el registro de la cita
         cursor.execute("INSERT INTO citas (paciente, doctor, fecha, motivo) VALUES (%s, %s, %s, %s)",
                        (cita.paciente, cita.doctor, cita.fecha, cita.motivo))
         
-        # 2. Transición de Estado: El cupo del doctor pasa a estar ocupado
+        # 2. El cupo del doctor pasa a estar ocupado (Reservado)
         cursor.execute("UPDATE horarios_disponibles SET estado = 'Reservado' WHERE id = %s", (cita.horario_id,))
         
         conexion.commit()
@@ -171,16 +210,8 @@ def agendar_cita(cita: Cita):
         cursor.close()
         conexion.close()
 
-        # Enviar evento asíncrono a RabbitMQ
-        try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
-            channel = connection.channel()
-            channel.queue_declare(queue='citas_pendientes')
-            mensaje = {"id_cita": cita_id, "paciente": cita.paciente, "doctor": cita.doctor, "fecha": cita.fecha}
-            channel.basic_publish(exchange='', routing_key='citas_pendientes', body=json.dumps(mensaje))
-            connection.close()
-        except Exception as err_mq:
-            print(f"⚠️ Evento RabbitMQ omitido: {err_mq}")
+        # 3. Notificar creación de cita al Worker a través de RabbitMQ
+        notificar_rabbitmq(cita_id, "Pendiente")
 
         return {"status": "éxito", "id_cita": cita_id}
     except Exception as e:
@@ -199,15 +230,21 @@ def obtener_citas():
     except Error as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.put("/citas/{cita_id}/validar")
-def validar_cita(cita_id: int):
+@app.put("/citas/{cita_id}/estado")
+def cambiar_estado_cita(cita_id: int, datos: EstadoCita):
     try:
         conexion = mysql.connector.connect(**db_config)
         cursor = conexion.cursor()
-        cursor.execute("UPDATE citas SET estado = 'Validada' WHERE id = %s", (cita_id,))
+        
+        # 1. Actualizamos el estado de la cita (Validada, Realizada, Cancelada)
+        cursor.execute("UPDATE citas SET estado = %s WHERE id = %s", (datos.estado, cita_id))
         conexion.commit()
         cursor.close()
         conexion.close()
+        
+        # 2. Disparamos la notificación asíncrona al paciente con su nuevo estado
+        notificar_rabbitmq(cita_id, datos.estado)
+        
         return {"status": "éxito"}
     except Error as e:
         raise HTTPException(status_code=500, detail=str(e))

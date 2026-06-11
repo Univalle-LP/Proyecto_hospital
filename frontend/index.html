@@ -95,7 +95,7 @@
         const API_URL = "http://localhost:8000";
         let usuarioActual = null;
 
-        // 1. MANEJO DE AUTENTICACIÓN
+        // --- LÓGICA DE LOGIN ---
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             const usr = document.getElementById('loginUsuario').value;
@@ -120,7 +120,7 @@
             }
         };
 
-        // 2. ADAPTACIÓN ESTRUCTURAL DE ROLES
+        // --- ADAPTACIÓN ESTRUCTURAL DE ROLES ---
         function configurarInterfaz() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appContent').classList.remove('hidden');
@@ -163,7 +163,7 @@
             document.getElementById('userInfo').classList.add('hidden');
         }
 
-        // 3. LOGICA FILTRADA DE DISPONIBILIDADES (Para el Paciente)
+        // --- LOGICA FILTRADA DE DISPONIBILIDADES (Paciente) ---
         async function actualizarFechasDisponibles() {
             const doctorSeleccionado = document.getElementById('doctor').value;
             const fechaSelect = document.getElementById('fechaSelect');
@@ -187,7 +187,7 @@
             }
         }
 
-        // 4. CREACIÓN DE HORARIOS (Exclusivo para Doctores)
+        // --- CREACIÓN DE HORARIOS (Doctor) ---
         document.getElementById('horarioForm').onsubmit = async (e) => {
             e.preventDefault();
             const nuevoCupo = {
@@ -226,7 +226,7 @@
             }
         }
 
-        // 5. OBTENER Y FILTRAR CONTROL DE CITAS
+        // --- OBTENER Y FILTRAR CONTROL DE CITAS ---
         async function cargarCitas() {
             const res = await fetch(`${API_URL}/citas`);
             const data = await res.json();
@@ -239,11 +239,33 @@
             } else if (usuarioActual.rol === 'doctor') {
                 citasFiltradas = data.citas.filter(c => c.doctor === usuarioActual.nombre_completo);
             }
-            // Si es 'admin' muestra absolutamente todos los doctores y todas las citas de manera global
 
             if (citasFiltradas.length > 0) {
-                lista.innerHTML = citasFiltradas.map(c => `
-                    <div class="p-5 border-l-4 ${c.estado === 'Validada' ? 'border-green-500 bg-green-50/30' : 'border-amber-500 bg-slate-50'} flex flex-col md:flex-row justify-between items-start md:items-center rounded shadow-sm">
+                lista.innerHTML = citasFiltradas.map(c => {
+                    // Colores por estado
+                    let colorBorde = 'border-amber-500';
+                    let colorFondo = 'bg-slate-50';
+                    let colorEtiqueta = 'bg-amber-100 text-amber-700';
+                    
+                    if (c.estado === 'Validada') { colorBorde = 'border-blue-500'; colorFondo = 'bg-blue-50/30'; colorEtiqueta = 'bg-blue-100 text-blue-700'; }
+                    if (c.estado === 'Realizada') { colorBorde = 'border-green-500'; colorFondo = 'bg-green-50/50'; colorEtiqueta = 'bg-green-100 text-green-700'; }
+                    if (c.estado === 'Cancelada') { colorBorde = 'border-red-500'; colorFondo = 'bg-red-50/50'; colorEtiqueta = 'bg-red-100 text-red-700'; }
+
+                    // Lógica de botones según Rol y Estado
+                    let botonesAccion = '';
+                    if (usuarioActual.rol === 'admin' && c.estado === 'Pendiente') {
+                        botonesAccion = `<button onclick="cambiarEstadoCita(${c.id}, 'Validada')" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">✔ Aprobar Cita</button>`;
+                    } else if (usuarioActual.rol === 'doctor' && c.estado === 'Validada') {
+                        botonesAccion = `
+                            <div class="flex space-x-2 mt-2 md:mt-0">
+                                <button onclick="cambiarEstadoCita(${c.id}, 'Realizada')" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">✔ Realizada</button>
+                                <button onclick="cambiarEstadoCita(${c.id}, 'Cancelada')" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">❌ Cancelar</button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                    <div class="p-5 border-l-4 ${colorBorde} ${colorFondo} flex flex-col md:flex-row justify-between items-start md:items-center rounded shadow-sm">
                         <div>
                             <p class="font-bold text-slate-800 text-lg">${c.paciente}</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1 text-sm text-slate-600">
@@ -253,18 +275,17 @@
                             <p class="text-xs mt-2 text-slate-500 italic bg-white p-2 rounded border border-slate-100">"${c.motivo}"</p>
                         </div>
                         <div class="flex flex-col items-end justify-center w-full md:w-auto border-t md:border-0 pt-2 md:pt-0 mt-2 md:mt-0">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold mb-2 ${c.estado === 'Validada' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${c.estado}</span>
-                            ${usuarioActual.rol === 'admin' && c.estado !== 'Validada' ? 
-                            `<button onclick="validarCita(${c.id})" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">✔ Validar</button>` : ''}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold mb-2 ${colorEtiqueta}">${c.estado}</span>
+                            ${botonesAccion}
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             } else {
                 lista.innerHTML = '<p class="text-slate-400 italic text-center p-12 bg-slate-50 rounded-xl border border-dashed">No se registran citas médicas en esta bandeja.</p>';
             }
         }
 
-        // 6. ENVIAR CITA CONSUMIENDO EL SELECT
+        // --- ENVIAR CITA CONSUMIENDO EL SELECT ---
         document.getElementById('citaForm').onsubmit = async (e) => {
             e.preventDefault();
             const fechaSelect = document.getElementById('fechaSelect');
@@ -293,9 +314,16 @@
             }
         };
 
-        async function validarCita(id) {
-            await fetch(`${API_URL}/citas/${id}/validar`, { method: 'PUT' });
-            cargarCitas();
+        // --- CAMBIAR ESTADO DE LA CITA ---
+        async function cambiarEstadoCita(id, nuevoEstado) {
+            if(confirm(`¿Estás seguro de marcar esta cita como ${nuevoEstado}? El paciente será notificado.`)) {
+                await fetch(`${API_URL}/citas/${id}/estado`, { 
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                cargarCitas();
+            }
         }
     </script>
 </body>
