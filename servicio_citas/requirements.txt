@@ -1,4 +1,7 @@
 fastapi
 uvicorn
+mysql-connector-python==8.0.33
 pika
-mysql-connector-python
+passlib
+bcrypt==3.2.2
+PyJWT

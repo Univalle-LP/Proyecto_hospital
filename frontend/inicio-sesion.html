@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - HealthSync Hospital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans flex justify-center items-center h-screen">
+
+    <section class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-700 mb-2">HealthSync Hospital</h1>
+            <h2 class="text-xl text-slate-600">Iniciar Sesión</h2>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="loginUsuario" class="block text-sm font-medium text-slate-700 mb-1">Usuario o Correo Electrónico</label>
+                <input id="loginUsuario" type="text" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+            </div>
+            
+            <div class="relative">
+                <label for="loginPassword" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+                <input id="loginPassword" type="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition pr-10">
+                <button type="button" onclick="togglePassword()" class="absolute right-3 top-9 text-slate-400 hover:text-blue-600 focus:outline-none">
+                    <i id="eyeIcon" class="fas fa-eye"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-end">
+                <a href="recuperar.html" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">Ingresar al Sistema</button>
+        </form>
+
+        <div class="mt-8 text-center text-sm text-slate-600 border-t pt-4">
+            ¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 hover:underline font-semibold">Regístrate aquí</a>
+        </div>
+    </section>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+
+        // Función de Seguridad Frontend: Mostrar/Ocultar Password
+        function togglePassword() {
+            const passwordInput = document.getElementById('loginPassword');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Proceso de Autenticación y Manejo de Tokens
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const usr = document.getElementById('loginUsuario').value;
+            const pwd = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({usuario: usr, password: pwd})
+                });
+
+                if(res.ok) {
+                    const data = await res.json();
+                    // Gestión de Sesiones: Guardamos el token y los datos de forma segura
+                    localStorage.setItem('healthsync_token', data.access_token);
+                    localStorage.setItem('healthsync_user', JSON.stringify(data.usuario));
+                    // Redirigimos al sistema principal
+                    window.location.href = 'index.html'; 
+                } else {
+                    const err = await res.json();
+                    alert(`Error de autenticación: ${err.detail}`);
+                }
+            } catch(err) {
+                alert("Error de infraestructura. Verifica que los microservicios estén encendidos.");
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Contraseña - HealthSync Hospital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans flex justify-center items-center h-screen">
+
+    <section class="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fas fa-unlock-alt"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Recuperación de Contraseña</h1>
+            <p class="text-sm text-slate-500 mt-2">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu acceso.</p>
+        </div>
+
+        <form id="recuperarForm" class="space-y-6">
+            <div>
+                <label for="recuperarCorreo" class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+                <input id="recuperarCorreo" type="email" required placeholder="correo@ejemplo.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">Enviar enlace de recuperación</button>
+        </form>
+
+        <div class="mt-6 text-center text-sm text-slate-600">
+            <a href="inicio-sesion.html" class="text-blue-600 hover:underline font-semibold"><i class="fas fa-arrow-left mr-1"></i> Volver al inicio de sesión</a>
+        </div>
+    </section>
+
+    <script>
+        // Cambiamos el onclick del botón a type="submit" en el HTML
+        document.getElementById('recuperarForm').onsubmit = async (e) => {
+            e.preventDefault(); // Evitamos que la página se recargue
+            
+            const correo = document.getElementById('recuperarCorreo').value;
+            const boton = e.target.querySelector('button');
+
+            if(correo) {
+                // Efecto visual de carga
+                const textoOriginal = boton.innerText;
+                boton.innerText = "Enviando correo...";
+                boton.disabled = true;
+                boton.classList.add("opacity-75", "cursor-not-allowed");
+
+                try {
+                    const res = await fetch("http://localhost:8000/recuperar-password", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({ correo: correo })
+                    });
+
+                    if(res.ok) {
+                        alert(`¡Listo! Si el correo ${correo} está registrado, te hemos enviado una contraseña temporal.`);
+                        window.location.href = 'inicio-sesion.html';
+                    } else {
+                        alert("Hubo un problema de comunicación con el servidor.");
+                    }
+                } catch(error) {
+                    alert("Error crítico: No se pudo contactar al servidor de correos.");
+                } finally {
+                    // Restauramos el botón si algo falla
+                    boton.innerText = textoOriginal;
+                    boton.disabled = false;
+                    boton.classList.remove("opacity-75", "cursor-not-allowed");
+                }
+            }
+        };
+    </script>
+</body>
+</html>

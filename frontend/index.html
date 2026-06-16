@@ -1,330 +1,605 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8"><title>HealthSync Hospital</title>
+    <meta charset="UTF-8">
+    <title>Bandeja Principal - HealthSync Hospital</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 font-sans">
-    <nav class="bg-blue-700 p-4 text-white shadow-lg flex justify-between items-center">
-        <h1 class="text-2xl font-bold">HealthSync Hospital</h1>
-        <div id="userInfo" class="hidden flex items-center space-x-4">
-            <span id="userNameDisplay" class="font-semibold"></span>
-            <span id="userRoleBadge" class="bg-white text-blue-700 text-xs px-2 py-1 rounded-full uppercase font-bold"></span>
-            <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition">Salir</button>
+
+    <script>
+        const token = localStorage.getItem('healthsync_token');
+        if (!token) {
+            // Si alguien intenta entrar sin loguearse, lo pateamos al inicio de sesión
+            window.location.href = 'inicio-sesion.html';
+        }
+    </script>
+
+    <nav class="bg-blue-700 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold"><i class="fas fa-hospital-user mr-2"></i>HealthSync</h1>
+            <div class="flex items-center space-x-4">
+                <span id="userInfo" class="text-sm bg-blue-800 px-3 py-1 rounded-full border border-blue-600">
+                    <i class="fas fa-user-circle mr-1"></i> <span id="userNameDisplay">Cargando...</span> (<span id="userRoleDisplay"></span>)
+                </span>
+                <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-bold transition shadow">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Salir
+                </button>
+                <button onclick="abrirModalPassword()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded text-sm font-bold transition shadow mr-2">
+                    <i class="fas fa-key mr-1"></i> Cambiar Clave
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div id="loginScreen" class="flex justify-center items-center h-screen -mt-16">
-        <div class="bg-white p-10 rounded-2xl shadow-2xl w-96">
-            <h2 class="text-3xl mb-6 text-slate-800 font-bold text-center">Iniciar Sesión</h2>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Usuario</label>
-                    <input id="loginUsuario" type="text" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Contraseña</label>
-                    <input id="loginPassword" type="password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition">Ingresar</button>
-            </form>
-            <div class="mt-4 text-xs text-slate-500 bg-slate-100 p-3 rounded">
-                <p><strong>Cuentas de acceso:</strong></p>
-                <p>Admin: admin / admin123</p>
-                <p>Médicos: dr_perez / 123 | dra_miranda / 123</p>
-                <p>Paciente: juan / 123</p>
+    <main class="container mx-auto mt-8 p-4">
+        
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Panel de Gestión</h2>
+                <p id="subtituloRol" class="text-slate-500 text-sm">Cargando permisos...</p>
+            </div>
+            <div id="botonesRol" class="flex gap-2">
             </div>
         </div>
-    </div>
 
-    <div id="appContent" class="hidden container mx-auto p-4 mt-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Buscar Paciente o Doctor</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                    <input type="text" id="buscador" placeholder="Escribe un nombre..." class="w-full pl-10 p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
             
-            <div id="panelAgendar" class="hidden bg-white p-8 rounded-2xl shadow-xl h-fit">
-                <h2 class="text-2xl font-semibold mb-6 text-slate-700">Solicitar Nueva Cita</h2>
-                <form id="citaForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-600 mb-1">Selecciona tu Médico Especialista</label>
-                        <select id="doctor" onchange="actualizarFechasDisponibles()" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white" required>
-                            <option value="" disabled selected>-- Elige un Profesional --</option>
-                            <option value="Dr. Perez (Cirujano)">Dr. Perez (Cirujano)</option>
-                            <option value="Dra. Miranda (Pediatra)">Dra. Miranda (Pediatra)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-600 mb-1">Horarios de Atención Habilitados</label>
-                        <select id="fechaSelect" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white" required>
-                            <option value="" disabled selected>Primero selecciona un médico...</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-600 mb-1">Motivo de Consulta</label>
-                        <textarea id="motivo" placeholder="Describe brevemente tus síntomas..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none h-24" required></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition">Confirmar Cupo Médico</button>
-                </form>
+            <div class="w-48">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Filtrar por Estado</label>
+                <select id="filtroEstado" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="todos">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Reservado">Reservado</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
             </div>
 
-            <div id="panelDoctorHorarios" class="hidden bg-white p-8 rounded-2xl shadow-xl h-fit">
-                <h2 class="text-2xl font-semibold mb-4 text-slate-700">Habilitar Mi Jornada</h2>
-                <form id="horarioForm" class="space-y-4 mb-6">
-                    <div>
-                        <label class="block text-sm text-slate-600 mb-1">Abrir Nueva Hora de Atención</label>
-                        <input id="nuevaFechaHora" type="datetime-local" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" required>
-                    </div>
-                    <button type="submit" class="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold hover:bg-emerald-700 transition">＋ Agregar Cupo</button>
-                </form>
-                <h3 class="font-semibold text-slate-700 mb-2 border-t pt-4">Historial de Mis Bloques Abiertos:</h3>
-                <div id="listaMisHorarios" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                    </div>
+            <button onclick="cargarCitas()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded font-semibold transition">
+                <i class="fas fa-filter mr-1"></i> Filtrar
+            </button>
+        </section>
+
+        <section class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 font-semibold">ID</th>
+                        <th class="py-3 px-6 font-semibold">Paciente</th>
+                        <th class="py-3 px-6 font-semibold">Doctor</th>
+                        <th class="py-3 px-6 font-semibold">Fecha y Hora</th>
+                        <th class="py-3 px-6 font-semibold">Estado</th>
+                        <th class="py-3 px-6 font-semibold text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCitasBody" class="text-slate-700 text-sm font-light">
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-400">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>
+                            Cargando citas del sistema...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+
+    <div id="modalNuevaCita" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            
+            <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fas fa-calendar-plus mr-2"></i>Solicitar Nueva Cita</h3>
+                <button onclick="cerrarModalNuevaCita()" class="hover:text-emerald-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
 
-            <div id="panelCitas" class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-xl">
-                <div class="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 id="tituloBandeja" class="text-2xl font-semibold text-slate-700">Bandeja General</h2>
-                    <button onclick="cargarCitas()" class="text-blue-600 font-semibold hover:underline">↻ Actualizar</button>
+            <form id="formNuevaCita" class="p-6 space-y-4">
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Paciente</label>
+                    <input type="text" id="citaPaciente" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
                 </div>
-                <div id="listaCitas" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                    </div>
-            </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Especialista y Horario Disponible</label>
+                    <select id="citaHorario" required class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
+                        <option value="">Cargando horarios...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Motivo de la Consulta</label>
+                    <textarea id="citaMotivo" required rows="3" placeholder="Describe brevemente tus síntomas o motivo de visita..." class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+                    <button type="button" onclick="cerrarModalNuevaCita()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded font-semibold shadow-md transition">Confirmar Cita</button>
+                </div>
+            </form>
         </div>
     </div>
 
+    <div id="modalCambiarPassword" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+            
+            <div class="bg-yellow-500 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fas fa-key mr-2"></i>Cambiar Contraseña</h3>
+                <button onclick="cerrarModalPassword()" class="hover:text-yellow-200 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <form id="formCambiarPassword" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual (La que llegó al correo)</label>
+                    <input type="password" id="passActual" required class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña</label>
+                    <input type="password" id="passNuevo" required minlength="8" class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="passConfirmar" required minlength="8" class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+                    <button type="button" onclick="cerrarModalPassword()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-yellow-500 hover:bg-yellow-600 rounded font-semibold shadow-md transition">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalNuevoHorario" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            
+            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fas fa-calendar-day mr-2"></i>Generar Jornada Laboral</h3>
+                <button onclick="cerrarModalNuevoHorario()" class="hover:text-indigo-200 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <form id="formNuevoHorario" class="p-6 space-y-4">
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Doctor Especialista</label>
+                    <input type="text" id="horarioDoctor" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la Jornada</label>
+                    <input type="date" id="horarioSoloFecha" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Inicio (Entrada)</label>
+                        <input type="time" id="horarioInicio" value="08:00" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Fin (Salida)</label>
+                        <input type="time" id="horarioFin" value="16:00" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Duración de cada Consulta</label>
+                    <select id="horarioIntervalo" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="30">30 minutos</option>
+                        <option value="60" selected>1 hora</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+                    <button type="button" onclick="cerrarModalNuevoHorario()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded font-semibold shadow-md transition">Generar Turnos</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const API_URL = "http://localhost:8000";
-        let usuarioActual = null;
 
-        // --- LÓGICA DE LOGIN ---
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const usr = document.getElementById('loginUsuario').value;
-            const pwd = document.getElementById('loginPassword').value;
+        // Inicializar datos del usuario logueado y validar roles
+        document.addEventListener("DOMContentLoaded", () => {
+            const userData = JSON.parse(localStorage.getItem('healthsync_user'));
+            if(userData) {
+                // Llenar datos de la barra superior
+                document.getElementById('userNameDisplay').innerText = userData.nombre_completo;
+                document.getElementById('userRoleDisplay').innerText = userData.rol.toUpperCase();
+                
+                // --- LÓGICA DE ROLES PARA LA INTERFAZ ---
+                const contenedorBotones = document.getElementById('botonesRol');
+                const subtitulo = document.getElementById('subtituloRol');
 
+                if (userData.rol === 'paciente') {
+                    subtitulo.innerText = "Historial de mis citas médicas";
+                    contenedorBotones.innerHTML = `
+                        <button onclick="abrirModalNuevaCita()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                            <i class="fas fa-plus mr-2"></i> Solicitar Nueva Cita
+                        </button>
+                    `;
+                } 
+                else if (userData.rol === 'doctor') {
+                    subtitulo.innerText = "Bandeja de atención a pacientes";
+                    contenedorBotones.innerHTML = `
+                        <button onclick="abrirModalNuevoHorario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                            <i class="fas fa-calendar-alt mr-2"></i> Publicar Horario / Turno
+                        </button>
+                    `;
+                }
+                else if (userData.rol === 'admin') {
+                    subtitulo.innerText = "Centro de Control General y Auditoría";
+                    contenedorBotones.innerHTML = `
+                        <button onclick="alert('Módulo de Usuarios')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                            <i class="fas fa-users-cog mr-2"></i> Gestión de Usuarios
+                        </button>
+                        <button onclick="alert('Módulo de Reportes')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                            <i class="fas fa-chart-line mr-2"></i> Reportes del Sistema
+                        </button>
+                    `;
+                }
+            }
+            // Llamar a las citas una sola vez
+            cargarCitas();
+        });
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            localStorage.removeItem('healthsync_token');
+            localStorage.removeItem('healthsync_user');
+            window.location.href = 'inicio-sesion.html';
+        }
+
+        // Cargar citas desde el backend
+        async function cargarCitas() {
             try {
-                const res = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({usuario: usr, password: pwd})
-                });
-
+                const res = await fetch(`${API_URL}/citas`);
                 if(res.ok) {
                     const data = await res.json();
-                    usuarioActual = data.usuario;
-                    configurarInterfaz();
-                } else {
-                    alert("Credenciales inválidas.");
+                    renderizarTabla(data.citas);
                 }
             } catch(err) {
-                alert("Error de infraestructura.");
+                console.error("Error al cargar citas:", err);
             }
-        };
+        }
 
-        // --- ADAPTACIÓN ESTRUCTURAL DE ROLES ---
-        function configurarInterfaz() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appContent').classList.remove('hidden');
-            document.getElementById('userInfo').classList.remove('hidden');
+        // Renderizar tabla con soporte para buscador, filtros y acciones por ROL
+        function renderizarTabla(citas) {
+            const tbody = document.getElementById('tablaCitasBody');
+            const busqueda = document.getElementById('buscador').value.toLowerCase();
+            const filtro = document.getElementById('filtroEstado').value;
+
+            // Obtenemos el rol del usuario actual para saber qué botones dibujarle
+            const userData = JSON.parse(localStorage.getItem('healthsync_user'));
+            const rolUsuario = userData ? userData.rol : '';
+
+            tbody.innerHTML = ''; // Limpiar tabla
+
+            const citasFiltradas = citas.filter(cita => {
+                const coincideTexto = cita.paciente.toLowerCase().includes(busqueda) || cita.doctor.toLowerCase().includes(busqueda);
+                const coincideEstado = filtro === 'todos' || cita.estado === filtro;
+                return coincideTexto && coincideEstado;
+            });
+
+            if(citasFiltradas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500">No se encontraron resultados</td></tr>`;
+                return;
+            }
+
+            citasFiltradas.forEach(cita => {
+                let colorEstado = 'bg-yellow-200 text-yellow-800';
+                if(cita.estado === 'Realizada' || cita.estado === 'Validada') colorEstado = 'bg-green-200 text-green-800';
+                if(cita.estado === 'Cancelada') colorEstado = 'bg-red-200 text-red-800';
+
+                // --- LÓGICA DE BOTONES CRUD POR ROL ---
+                let botonesAccion = '';
+
+                if (rolUsuario === 'admin') {
+                    if (cita.estado !== 'Cancelada') {
+                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
+                    }
+                    if (cita.estado === 'Pendiente') {
+                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="text-emerald-500 hover:text-emerald-700 mx-1 font-bold" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
+                    }
+                } 
+                else if (rolUsuario === 'doctor') {
+                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') {
+                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="text-blue-500 hover:text-blue-700 mx-1 font-bold" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
+                    }
+                } 
+                else if (rolUsuario === 'paciente') {
+                    if (cita.estado === 'Pendiente') {
+                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
+                    }
+                }
+
+                if (botonesAccion === '') {
+                    botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones disponibles</span>';
+                }
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-200 hover:bg-slate-50">
+                        <td class="py-3 px-6 font-bold text-blue-600">#${cita.id}</td>
+                        <td class="py-3 px-6">${cita.paciente}</td>
+                        <td class="py-3 px-6 text-slate-500"><i class="fas fa-user-md mr-1"></i>${cita.doctor}</td>
+                        <td class="py-3 px-6">${cita.fecha}</td>
+                        <td class="py-3 px-6">
+                            <span class="${colorEstado} py-1 px-3 rounded-full text-xs font-semibold">${cita.estado}</span>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            ${botonesAccion}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        // ==========================================
+        // LÓGICA DE ACTUALIZACIÓN DE ESTADOS (CRUD)
+        // ==========================================
+        async function cambiarEstadoCita(idCita, nuevoEstado) {
+            // Confirmación de seguridad antes de modificar un registro (Requisito CRUD)
+            const confirmacion = confirm(`¿Está seguro de que desea marcar la cita #${idCita} como "${nuevoEstado}"?`);
             
-            document.getElementById('userNameDisplay').innerText = usuarioActual.nombre_completo;
-            document.getElementById('userRoleBadge').innerText = usuarioActual.rol;
-
-            const panelAgendar = document.getElementById('panelAgendar');
-            const panelDoctorHorarios = document.getElementById('panelDoctorHorarios');
-            const panelCitas = document.getElementById('panelCitas');
-            const tituloBandeja = document.getElementById('tituloBandeja');
-
-            if(usuarioActual.rol === 'paciente') {
-                panelAgendar.classList.remove('hidden');
-                panelDoctorHorarios.classList.add('hidden');
-                panelCitas.classList.replace('lg:col-span-3', 'lg:col-span-2');
-                tituloBandeja.innerText = "Mis Citas Agendadas";
-            } else if(usuarioActual.rol === 'doctor') {
-                panelAgendar.classList.add('hidden');
-                panelDoctorHorarios.classList.remove('hidden');
-                panelCitas.classList.replace('lg:col-span-3', 'lg:col-span-2');
-                tituloBandeja.innerText = `Consultas Clínicas Asignadas`;
-                cargarHorariosDoctor();
-            } else if(usuarioActual.rol === 'admin') {
-                panelAgendar.classList.add('hidden');
-                panelDoctorHorarios.classList.add('hidden');
-                panelCitas.classList.replace('lg:col-span-2', 'lg:col-span-3'); // Ocupa espacio extendido
-                tituloBandeja.innerText = "Panel de Auditoría General (Todos los Doctores y Citas)";
-            }
-
-            cargarCitas();
-        }
-
-        function cerrarSesion() {
-            usuarioActual = null;
-            document.getElementById('loginForm').reset();
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('appContent').classList.add('hidden');
-            document.getElementById('userInfo').classList.add('hidden');
-        }
-
-        // --- LOGICA FILTRADA DE DISPONIBILIDADES (Paciente) ---
-        async function actualizarFechasDisponibles() {
-            const doctorSeleccionado = document.getElementById('doctor').value;
-            const fechaSelect = document.getElementById('fechaSelect');
-            fechaSelect.innerHTML = '<option value="" disabled selected>Buscando agenda disponible...</option>';
+            if (!confirmacion) return; // Si el usuario cancela, no hacemos nada
 
             try {
-                const res = await fetch(`${API_URL}/horarios`);
-                const data = await res.json();
-                
-                // Filtramos que correspondan al doctor elegido y estén sin reservar
-                const disponibles = data.horarios.filter(h => h.doctor === doctorSeleccionado && h.estado === 'Disponible');
-
-                if(disponibles.length > 0) {
-                    fechaSelect.innerHTML = '<option value="" disabled selected>-- Elige un Horario --</option>' +
-                        disponibles.map(h => `<option value="${h.fecha_hora}" data-id="${h.id}">${h.fecha_hora.replace('T', ' ')}</option>`).join('');
-                } else {
-                    fechaSelect.innerHTML = '<option value="" disabled selected>❌ El doctor no tiene horarios abiertos</option>';
-                }
-            } catch {
-                fechaSelect.innerHTML = '<option value="" disabled selected>Error consultando agenda.</option>';
-            }
-        }
-
-        // --- CREACIÓN DE HORARIOS (Doctor) ---
-        document.getElementById('horarioForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const nuevoCupo = {
-                doctor: usuarioActual.nombre_completo,
-                fecha_hora: document.getElementById('nuevaFechaHora').value
-            };
-
-            const res = await fetch(`${API_URL}/horarios`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(nuevoCupo)
-            });
-
-            if(res.ok) {
-                alert("¡Bloque de tiempo añadido a tu agenda pública!");
-                document.getElementById('nuevaFechaHora').value = '';
-                cargarHorariosDoctor();
-            }
-        };
-
-        async function cargarHorariosDoctor() {
-            const res = await fetch(`${API_URL}/horarios`);
-            const data = await res.json();
-            const lista = document.getElementById('listaMisHorarios');
-            const misHorarios = data.horarios.filter(h => h.doctor === usuarioActual.nombre_completo);
-
-            if(misHorarios.length > 0) {
-                lista.innerHTML = misHorarios.map(h => `
-                    <div class="flex justify-between items-center p-2 bg-slate-50 border border-slate-200 rounded text-xs">
-                        <span class="font-medium text-slate-700">📅 ${h.fecha_hora.replace('T', ' ')}</span>
-                        <span class="px-2 py-0.5 rounded-full font-bold ${h.estado === 'Disponible' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${h.estado}</span>
-                    </div>
-                `).join('');
-            } else {
-                lista.innerHTML = '<p class="text-xs text-slate-400 italic text-center p-2">No has abierto turnos aún.</p>';
-            }
-        }
-
-        // --- OBTENER Y FILTRAR CONTROL DE CITAS ---
-        async function cargarCitas() {
-            const res = await fetch(`${API_URL}/citas`);
-            const data = await res.json();
-            const lista = document.getElementById('listaCitas');
-            
-            let citasFiltradas = data.citas;
-
-            if(usuarioActual.rol === 'paciente') {
-                citasFiltradas = data.citas.filter(c => c.paciente === usuarioActual.nombre_completo);
-            } else if (usuarioActual.rol === 'doctor') {
-                citasFiltradas = data.citas.filter(c => c.doctor === usuarioActual.nombre_completo);
-            }
-
-            if (citasFiltradas.length > 0) {
-                lista.innerHTML = citasFiltradas.map(c => {
-                    // Colores por estado
-                    let colorBorde = 'border-amber-500';
-                    let colorFondo = 'bg-slate-50';
-                    let colorEtiqueta = 'bg-amber-100 text-amber-700';
-                    
-                    if (c.estado === 'Validada') { colorBorde = 'border-blue-500'; colorFondo = 'bg-blue-50/30'; colorEtiqueta = 'bg-blue-100 text-blue-700'; }
-                    if (c.estado === 'Realizada') { colorBorde = 'border-green-500'; colorFondo = 'bg-green-50/50'; colorEtiqueta = 'bg-green-100 text-green-700'; }
-                    if (c.estado === 'Cancelada') { colorBorde = 'border-red-500'; colorFondo = 'bg-red-50/50'; colorEtiqueta = 'bg-red-100 text-red-700'; }
-
-                    // Lógica de botones según Rol y Estado
-                    let botonesAccion = '';
-                    if (usuarioActual.rol === 'admin' && c.estado === 'Pendiente') {
-                        botonesAccion = `<button onclick="cambiarEstadoCita(${c.id}, 'Validada')" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">✔ Aprobar Cita</button>`;
-                    } else if (usuarioActual.rol === 'doctor' && c.estado === 'Validada') {
-                        botonesAccion = `
-                            <div class="flex space-x-2 mt-2 md:mt-0">
-                                <button onclick="cambiarEstadoCita(${c.id}, 'Realizada')" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">✔ Realizada</button>
-                                <button onclick="cambiarEstadoCita(${c.id}, 'Cancelada')" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow font-bold text-sm transition">❌ Cancelar</button>
-                            </div>
-                        `;
-                    }
-
-                    return `
-                    <div class="p-5 border-l-4 ${colorBorde} ${colorFondo} flex flex-col md:flex-row justify-between items-start md:items-center rounded shadow-sm">
-                        <div>
-                            <p class="font-bold text-slate-800 text-lg">${c.paciente}</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1 text-sm text-slate-600">
-                                <p> 🩺 <span class="font-medium text-slate-700">Médico:</span> ${c.doctor}</p>
-                                <p> 📅 <span class="font-medium text-slate-700">Horario:</span> ${c.fecha.replace('T', ' ')}</p>
-                            </div>
-                            <p class="text-xs mt-2 text-slate-500 italic bg-white p-2 rounded border border-slate-100">"${c.motivo}"</p>
-                        </div>
-                        <div class="flex flex-col items-end justify-center w-full md:w-auto border-t md:border-0 pt-2 md:pt-0 mt-2 md:mt-0">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold mb-2 ${colorEtiqueta}">${c.estado}</span>
-                            ${botonesAccion}
-                        </div>
-                    </div>
-                `}).join('');
-            } else {
-                lista.innerHTML = '<p class="text-slate-400 italic text-center p-12 bg-slate-50 rounded-xl border border-dashed">No se registran citas médicas en esta bandeja.</p>';
-            }
-        }
-
-        // --- ENVIAR CITA CONSUMIENDO EL SELECT ---
-        document.getElementById('citaForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const fechaSelect = document.getElementById('fechaSelect');
-            const opcionElegida = fechaSelect.options[fechaSelect.selectedIndex];
-            const hId = opcionElegida.getAttribute('data-id');
-
-            const cita = {
-                paciente: usuarioActual.nombre_completo,
-                doctor: document.getElementById('doctor').value,
-                fecha: fechaSelect.value,
-                motivo: document.getElementById('motivo').value,
-                horario_id: parseInt(hId)
-            };
-            
-            const res = await fetch(`${API_URL}/agendar`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(cita)
-            });
-            
-            if(res.ok) { 
-                alert("¡Cita reservada con éxito!"); 
-                cargarCitas(); 
-                e.target.reset();
-                document.getElementById('fechaSelect').innerHTML = '<option value="" disabled selected>Primero selecciona un médico...</option>';
-            }
-        };
-
-        // --- CAMBIAR ESTADO DE LA CITA ---
-        async function cambiarEstadoCita(id, nuevoEstado) {
-            if(confirm(`¿Estás seguro de marcar esta cita como ${nuevoEstado}? El paciente será notificado.`)) {
-                await fetch(`${API_URL}/citas/${id}/estado`, { 
+                // Enviamos la petición PUT al servidor FastAPI
+                const res = await fetch(`${API_URL}/citas/${idCita}/estado`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ estado: nuevoEstado })
                 });
-                cargarCitas();
+
+                if(res.ok) {
+                    alert(`✅ Acción exitosa: La cita #${idCita} ahora está ${nuevoEstado}.`);
+                    cargarCitas(); // Refrescamos la tabla instantáneamente para ver el cambio
+                } else {
+                    const err = await res.json();
+                    alert(`Error al actualizar la cita: ${err.detail}`);
+                }
+            } catch(error) {
+                alert("Error de conexión con el servidor.");
             }
         }
+
+        // ==========================================
+        // LÓGICA DEL FORMULARIO CRUD (NUEVA CITA)
+        // ==========================================
+
+        async function abrirModalNuevaCita() {
+            // 1. Mostrar la ventana modal
+            document.getElementById('modalNuevaCita').classList.remove('hidden');
+
+            // 2. Autocompletar el nombre del paciente bloqueando el campo por seguridad
+            const userData = JSON.parse(localStorage.getItem('healthsync_user'));
+            document.getElementById('citaPaciente').value = userData.nombre_completo;
+
+            // 3. Consultar la API para obtener los horarios disponibles
+            try {
+                const res = await fetch(`${API_URL}/horarios`);
+                if(res.ok) {
+                    const data = await res.json();
+                    const selectHorario = document.getElementById('citaHorario');
+                    
+                    // Limpiar el select
+                    selectHorario.innerHTML = '<option value="">Seleccione un doctor y horario...</option>';
+
+                    // Filtrar SOLO los que tienen estado 'Disponible'
+                    const disponibles = data.horarios.filter(h => h.estado === 'Disponible');
+
+                    if(disponibles.length === 0) {
+                        selectHorario.innerHTML = '<option value="">No hay horarios disponibles por ahora</option>';
+                        return;
+                    }
+
+                    // Llenar las opciones
+                    disponibles.forEach(h => {
+                        // Guardamos los datos extra en atributos "data-" para usarlos al guardar
+                        selectHorario.innerHTML += `<option value="${h.id}" data-doctor="${h.doctor}" data-fecha="${h.fecha_hora}">
+                            ${h.doctor} - ${h.fecha_hora}
+                        </option>`;
+                    });
+                }
+            } catch(error) {
+                console.error("Error cargando horarios:", error);
+            }
+        }
+
+        function cerrarModalNuevaCita() {
+            document.getElementById('modalNuevaCita').classList.add('hidden');
+            document.getElementById('formNuevaCita').reset(); // Limpiar formulario al cerrar
+        }
+
+        // 4. Enviar la nueva cita a la Base de Datos
+        document.getElementById('formNuevaCita').onsubmit = async (e) => {
+            e.preventDefault(); // Evitar que la página se recargue
+
+            const selectHorario = document.getElementById('citaHorario');
+            const opcionSeleccionada = selectHorario.options[selectHorario.selectedIndex];
+
+            if(!opcionSeleccionada.value) {
+                alert("Por favor seleccione un doctor y horario válido.");
+                return;
+            }
+
+            // Construir el objeto JSON que espera tu API en Python
+            const nuevaCita = {
+                paciente: document.getElementById('citaPaciente').value,
+                doctor: opcionSeleccionada.getAttribute('data-doctor'),
+                fecha: opcionSeleccionada.getAttribute('data-fecha'),
+                motivo: document.getElementById('citaMotivo').value,
+                horario_id: parseInt(opcionSeleccionada.value)
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/agendar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(nuevaCita)
+                });
+
+                if(res.ok) {
+                    // Mensaje de éxito claro y descriptivo
+                    alert("¡Cita agendada con éxito! Su doctor ha sido notificado.");
+                    cerrarModalNuevaCita(); // Cerrar popup
+                    cargarCitas(); // Refrescar la tabla de fondo automáticamente
+                } else {
+                    const err = await res.json();
+                    alert(`Ocurrió un error al agendar: ${err.detail}`);
+                }
+            } catch(error) {
+                alert("Error de conexión con el servidor al intentar guardar.");
+            }
+        };
+        // ==========================================
+        // LÓGICA DEL FORMULARIO CRUD (NUEVO HORARIO DOCTOR)
+        // ==========================================
+
+        function abrirModalNuevoHorario() {
+            document.getElementById('modalNuevoHorario').classList.remove('hidden');
+            
+            // Autocompletar el nombre del doctor usando los datos de sesión
+            const userData = JSON.parse(localStorage.getItem('healthsync_user'));
+            document.getElementById('horarioDoctor').value = userData.nombre_completo;
+        }
+
+        function cerrarModalNuevoHorario() {
+            document.getElementById('modalNuevoHorario').classList.add('hidden');
+            document.getElementById('formNuevoHorario').reset(); // Limpiar inputs al cerrar
+        }
+
+        // Enviar la jornada laboral masiva a la Base de Datos
+        document.getElementById('formNuevoHorario').onsubmit = async (e) => {
+            e.preventDefault(); 
+            
+            const doctor = document.getElementById('horarioDoctor').value;
+            const fecha = document.getElementById('horarioSoloFecha').value;
+            const horaInicio = document.getElementById('horarioInicio').value;
+            const horaFin = document.getElementById('horarioFin').value;
+            const intervaloMinutos = parseInt(document.getElementById('horarioIntervalo').value);
+
+            // Creamos objetos Date de JavaScript para poder sumarles los minutos
+            let turnoActual = new Date(`${fecha}T${horaInicio}`);
+            const turnoFinal = new Date(`${fecha}T${horaFin}`);
+
+            let turnosGenerados = 0;
+
+            // Feedback visual: Bloqueamos el botón para que el usuario no haga doble clic
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.innerText = "Generando...";
+            btnSubmit.disabled = true;
+
+            try {
+                // Bucle que crea turnos hasta llegar a la hora de salida
+                while (turnoActual < turnoFinal) {
+                    
+                    // Extraemos las horas y minutos asegurándonos de que tengan 2 dígitos (ej. 08:00)
+                    const horas = String(turnoActual.getHours()).padStart(2, '0');
+                    const mins = String(turnoActual.getMinutes()).padStart(2, '0');
+                    const fechaFormateada = `${fecha} ${horas}:${mins}`;
+
+                    const nuevoHorario = {
+                        doctor: doctor,
+                        fecha_hora: fechaFormateada
+                    };
+
+                    // Enviamos este turno específico a tu API en Python
+                    await fetch(`${API_URL}/horarios`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(nuevoHorario)
+                    });
+
+                    turnosGenerados++;
+
+                    // Le sumamos los minutos del intervalo para calcular el siguiente turno
+                    turnoActual.setMinutes(turnoActual.getMinutes() + intervaloMinutos);
+                }
+
+                // Mensaje de éxito claro y descriptivo
+                alert(`¡Éxito! Se generaron ${turnosGenerados} turnos disponibles para el día ${fecha}.`);
+                cerrarModalNuevoHorario(); 
+
+            } catch(error) {
+                alert("Ocurrió un error de conexión al intentar generar los turnos.");
+            } finally {
+                // Restauramos el botón
+                btnSubmit.innerText = "Generar Turnos";
+                btnSubmit.disabled = false;
+            }
+        };
+
+        // ==========================================
+        // LÓGICA PARA CAMBIAR CONTRASEÑA
+        // ==========================================
+        function abrirModalPassword() {
+            document.getElementById('modalCambiarPassword').classList.remove('hidden');
+        }
+
+        function cerrarModalPassword() {
+            document.getElementById('modalCambiarPassword').classList.add('hidden');
+            document.getElementById('formCambiarPassword').reset();
+        }
+
+        document.getElementById('formCambiarPassword').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const actual = document.getElementById('passActual').value;
+            const nuevo = document.getElementById('passNuevo').value;
+            const confirmar = document.getElementById('passConfirmar').value;
+
+            // Validación de seguridad en el frontend
+            if (nuevo !== confirmar) {
+                alert("Las nuevas contraseñas no coinciden. Inténtalo de nuevo.");
+                return;
+            }
+
+            // Obtenemos el nombre de usuario de la sesión actual
+            const userData = JSON.parse(localStorage.getItem('healthsync_user'));
+
+            // 🛡️ PARCHE DE SEGURIDAD: Verificamos si la sesión es antigua o está corrupta
+            if (!userData || !userData.usuario) {
+                alert("Tu sesión está desactualizada o es inválida. El sistema cerrará la sesión automáticamente para renovar tus credenciales de forma segura.");
+                cerrarSesion();
+                return; // Detenemos la ejecución
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/cambiar-password`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        usuario: userData.usuario,
+                        password_actual: actual,
+                        password_nuevo: nuevo
+                    })
+                });
+
+                if(res.ok) {
+                    alert("¡Tu contraseña ha sido actualizada con éxito! Por favor, inicia sesión nuevamente con tu nueva clave.");
+                    cerrarSesion(); // Lo sacamos para que pruebe su nueva contraseña
+                } else {
+                    const err = await res.json();
+                    
+                    // 🛡️ MEJORA UX: Convertimos el error a texto legible para evitar el [object Object]
+                    // Si el error es un Array (como el 422), lo formateamos. Si es texto, lo mostramos normal.
+                    let mensajeError = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail, null, 2);
+                    alert(`No se pudo actualizar la contraseña:\n\n${mensajeError}`);
+                }
+            } catch(error) {
+                alert("Error crítico de conexión con el servidor.");
+            }
+        };
+        
     </script>
 </body>
 </html>
