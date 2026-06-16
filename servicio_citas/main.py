@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 import random
 import string
 
-app = FastAPI(title="Microservicio de Citas Hospitalarias")
+app = FastAPI(title="Microservicio de Citas Hospitalarias", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
