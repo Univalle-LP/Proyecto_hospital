@@ -11,7 +11,6 @@
     <script>
         const token = localStorage.getItem('healthsync_token');
         if (!token) {
-            // Si alguien intenta entrar sin loguearse, lo pateamos al inicio de sesión
             window.location.href = 'inicio-sesion.html';
         }
     </script>
@@ -40,7 +39,7 @@
                 <h2 class="text-2xl font-bold text-slate-800">Panel de Gestión</h2>
                 <p id="subtituloRol" class="text-slate-500 text-sm">Cargando permisos...</p>
             </div>
-            <div id="botonesRol" class="flex gap-2">
+            <div id="botonesRol" class="flex gap-2 flex-wrap justify-end">
             </div>
         </div>
 
@@ -93,34 +92,105 @@
 
     </main>
 
+    <!-- ===================== MODAL: GESTIÓN DE USUARIOS (NUEVO) ===================== -->
+    <div id="modalUsuarios" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-purple-700 p-4 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fas fa-users-cog mr-2"></i>Gestión de Usuarios</h3>
+                <button onclick="cerrarModalUsuarios()" class="hover:text-purple-200 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="flex flex-col md:flex-row overflow-hidden flex-1">
+                <!-- Panel izquierdo: Crear usuario -->
+                <div class="w-full md:w-80 bg-slate-50 p-5 border-r shrink-0 overflow-y-auto">
+                    <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-user-plus text-purple-600"></i> Crear Nuevo Usuario
+                    </h4>
+                    <form id="formNuevoUsuario" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
+                            <input type="text" id="nuevoNombre" required placeholder="Ej: Dr. García López"
+                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Usuario (login)</label>
+                            <input type="text" id="nuevoUsuario" required placeholder="Ej: dr_garcia"
+                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico</label>
+                            <input type="email" id="nuevoCorreo" required placeholder="Ej: garcia@hospital.com"
+                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña</label>
+                            <input type="password" id="nuevoPassword" required placeholder="Mínimo 6 caracteres"
+                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Rol</label>
+                            <select id="nuevoRol" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                <option value="paciente">🧑 Paciente</option>
+                                <option value="doctor">👨‍⚕️ Doctor</option>
+                                <option value="admin">🛡️ Administrador</option>
+                            </select>
+                        </div>
+                        <div id="mensajeRegistro" class="hidden text-sm rounded p-2"></div>
+                        <button type="submit" id="btnCrearUsuario"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-bold transition mt-2">
+                            <i class="fas fa-plus mr-1"></i> Crear Usuario
+                        </button>
+                    </form>
+                </div>
+                <!-- Panel derecho: Lista de usuarios -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b flex items-center justify-between shrink-0">
+                        <h4 class="font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fas fa-list text-purple-600"></i> Usuarios del Sistema
+                        </h4>
+                        <button onclick="cargarUsuarios()" class="text-sm text-purple-600 hover:underline">
+                            <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="px-4 py-2 border-b flex gap-2 shrink-0 flex-wrap">
+                        <button onclick="filtrarUsuariosPorRol('todos')" id="filtroTodos"
+                            class="filtro-rol-btn bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">Todos</button>
+                        <button onclick="filtrarUsuariosPorRol('admin')" id="filtroAdmin"
+                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">🛡️ Admins</button>
+                        <button onclick="filtrarUsuariosPorRol('doctor')" id="filtroDoctor"
+                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">👨‍⚕️ Doctores</button>
+                        <button onclick="filtrarUsuariosPorRol('paciente')" id="filtroPaciente"
+                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">🧑 Pacientes</button>
+                    </div>
+                    <div id="listaUsuarios" class="overflow-y-auto flex-1 p-4">
+                        <p class="text-slate-400 text-sm text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando usuarios...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- ===================== MODAL: NUEVA CITA ===================== -->
     <div id="modalNuevaCita" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-            
             <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-calendar-plus mr-2"></i>Solicitar Nueva Cita</h3>
                 <button onclick="cerrarModalNuevaCita()" class="hover:text-emerald-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
-
             <form id="formNuevaCita" class="p-6 space-y-4">
-                
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Paciente</label>
                     <input type="text" id="citaPaciente" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Especialista y Horario Disponible</label>
                     <select id="citaHorario" required class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
                         <option value="">Cargando horarios...</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Motivo de la Consulta</label>
                     <textarea id="citaMotivo" required rows="3" placeholder="Describe brevemente tus síntomas o motivo de visita..." class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
                 </div>
-
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
                     <button type="button" onclick="cerrarModalNuevaCita()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded font-semibold shadow-md transition">Confirmar Cita</button>
@@ -129,14 +199,13 @@
         </div>
     </div>
 
+    <!-- ===================== MODAL: CAMBIAR CONTRASEÑA ===================== -->
     <div id="modalCambiarPassword" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-            
             <div class="bg-yellow-500 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-key mr-2"></i>Cambiar Contraseña</h3>
                 <button onclick="cerrarModalPassword()" class="hover:text-yellow-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
-
             <form id="formCambiarPassword" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual (La que llegó al correo)</label>
@@ -150,7 +219,6 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
                     <input type="password" id="passConfirmar" required minlength="8" class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
                 </div>
-
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
                     <button type="button" onclick="cerrarModalPassword()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-white bg-yellow-500 hover:bg-yellow-600 rounded font-semibold shadow-md transition">Actualizar</button>
@@ -159,26 +227,22 @@
         </div>
     </div>
 
+    <!-- ===================== MODAL: NUEVO HORARIO DOCTOR ===================== -->
     <div id="modalNuevoHorario" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            
             <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-calendar-day mr-2"></i>Generar Jornada Laboral</h3>
                 <button onclick="cerrarModalNuevoHorario()" class="hover:text-indigo-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
-
             <form id="formNuevoHorario" class="p-6 space-y-4">
-                
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Doctor Especialista</label>
                     <input type="text" id="horarioDoctor" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la Jornada</label>
                     <input type="date" id="horarioSoloFecha" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Hora Inicio (Entrada)</label>
@@ -189,7 +253,6 @@
                         <input type="time" id="horarioFin" value="16:00" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Duración de cada Consulta</label>
                     <select id="horarioIntervalo" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
@@ -197,7 +260,6 @@
                         <option value="60" selected>1 hora</option>
                     </select>
                 </div>
-
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
                     <button type="button" onclick="cerrarModalNuevoHorario()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded font-semibold shadow-md transition">Generar Turnos</button>
@@ -205,18 +267,19 @@
             </form>
         </div>
     </div>
+
     <script>
         const API_URL = "http://localhost:8000";
 
-        // Inicializar datos del usuario logueado y validar roles
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             const userData = JSON.parse(localStorage.getItem('healthsync_user'));
             if(userData) {
-                // Llenar datos de la barra superior
                 document.getElementById('userNameDisplay').innerText = userData.nombre_completo;
                 document.getElementById('userRoleDisplay').innerText = userData.rol.toUpperCase();
                 
-                // --- LÓGICA DE ROLES PARA LA INTERFAZ ---
                 const contenedorBotones = document.getElementById('botonesRol');
                 const subtitulo = document.getElementById('subtituloRol');
 
@@ -225,41 +288,39 @@
                     contenedorBotones.innerHTML = `
                         <button onclick="abrirModalNuevaCita()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-plus mr-2"></i> Solicitar Nueva Cita
-                        </button>
-                    `;
-                } 
-                else if (userData.rol === 'doctor') {
+                        </button>`;
+                } else if (userData.rol === 'doctor') {
                     subtitulo.innerText = "Bandeja de atención a pacientes";
                     contenedorBotones.innerHTML = `
                         <button onclick="abrirModalNuevoHorario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-calendar-alt mr-2"></i> Publicar Horario / Turno
-                        </button>
-                    `;
-                }
-                else if (userData.rol === 'admin') {
+                        </button>`;
+                } else if (userData.rol === 'admin') {
                     subtitulo.innerText = "Centro de Control General y Auditoría";
                     contenedorBotones.innerHTML = `
-                        <button onclick="alert('Módulo de Usuarios')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalUsuarios()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-users-cog mr-2"></i> Gestión de Usuarios
                         </button>
-                        <button onclick="alert('Módulo de Reportes')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="alert('Módulo de Reportes en construcción')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-chart-line mr-2"></i> Reportes del Sistema
-                        </button>
-                    `;
+                        </button>`;
                 }
             }
-            // Llamar a las citas una sola vez
             cargarCitas();
         });
 
-        // Función para cerrar sesión
+        // ==========================================
+        // SESIÓN
+        // ==========================================
         function cerrarSesion() {
             localStorage.removeItem('healthsync_token');
             localStorage.removeItem('healthsync_user');
             window.location.href = 'inicio-sesion.html';
         }
 
-        // Cargar citas desde el backend
+        // ==========================================
+        // CITAS
+        // ==========================================
         async function cargarCitas() {
             try {
                 const res = await fetch(`${API_URL}/citas`);
@@ -272,17 +333,14 @@
             }
         }
 
-        // Renderizar tabla con soporte para buscador, filtros y acciones por ROL
         function renderizarTabla(citas) {
             const tbody = document.getElementById('tablaCitasBody');
             const busqueda = document.getElementById('buscador').value.toLowerCase();
             const filtro = document.getElementById('filtroEstado').value;
-
-            // Obtenemos el rol del usuario actual para saber qué botones dibujarle
             const userData = JSON.parse(localStorage.getItem('healthsync_user'));
             const rolUsuario = userData ? userData.rol : '';
 
-            tbody.innerHTML = ''; // Limpiar tabla
+            tbody.innerHTML = '';
 
             const citasFiltradas = citas.filter(cita => {
                 const coincideTexto = cita.paciente.toLowerCase().includes(busqueda) || cita.doctor.toLowerCase().includes(busqueda);
@@ -300,31 +358,16 @@
                 if(cita.estado === 'Realizada' || cita.estado === 'Validada') colorEstado = 'bg-green-200 text-green-800';
                 if(cita.estado === 'Cancelada') colorEstado = 'bg-red-200 text-red-800';
 
-                // --- LÓGICA DE BOTONES CRUD POR ROL ---
                 let botonesAccion = '';
-
                 if (rolUsuario === 'admin') {
-                    if (cita.estado !== 'Cancelada') {
-                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
-                    }
-                    if (cita.estado === 'Pendiente') {
-                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="text-emerald-500 hover:text-emerald-700 mx-1 font-bold" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
-                    }
-                } 
-                else if (rolUsuario === 'doctor') {
-                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') {
-                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="text-blue-500 hover:text-blue-700 mx-1 font-bold" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
-                    }
-                } 
-                else if (rolUsuario === 'paciente') {
-                    if (cita.estado === 'Pendiente') {
-                        botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
-                    }
+                    if (cita.estado !== 'Cancelada') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
+                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="text-emerald-500 hover:text-emerald-700 mx-1 font-bold" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
+                } else if (rolUsuario === 'doctor') {
+                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="text-blue-500 hover:text-blue-700 mx-1 font-bold" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
+                } else if (rolUsuario === 'paciente') {
+                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
                 }
-
-                if (botonesAccion === '') {
-                    botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones disponibles</span>';
-                }
+                if (botonesAccion === '') botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones disponibles</span>';
 
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-200 hover:bg-slate-50">
@@ -332,36 +375,24 @@
                         <td class="py-3 px-6">${cita.paciente}</td>
                         <td class="py-3 px-6 text-slate-500"><i class="fas fa-user-md mr-1"></i>${cita.doctor}</td>
                         <td class="py-3 px-6">${cita.fecha}</td>
-                        <td class="py-3 px-6">
-                            <span class="${colorEstado} py-1 px-3 rounded-full text-xs font-semibold">${cita.estado}</span>
-                        </td>
-                        <td class="py-3 px-6 text-center">
-                            ${botonesAccion}
-                        </td>
-                    </tr>
-                `;
+                        <td class="py-3 px-6"><span class="${colorEstado} py-1 px-3 rounded-full text-xs font-semibold">${cita.estado}</span></td>
+                        <td class="py-3 px-6 text-center">${botonesAccion}</td>
+                    </tr>`;
             });
         }
-        // ==========================================
-        // LÓGICA DE ACTUALIZACIÓN DE ESTADOS (CRUD)
-        // ==========================================
-        async function cambiarEstadoCita(idCita, nuevoEstado) {
-            // Confirmación de seguridad antes de modificar un registro (Requisito CRUD)
-            const confirmacion = confirm(`¿Está seguro de que desea marcar la cita #${idCita} como "${nuevoEstado}"?`);
-            
-            if (!confirmacion) return; // Si el usuario cancela, no hacemos nada
 
+        async function cambiarEstadoCita(idCita, nuevoEstado) {
+            const confirmacion = confirm(`¿Está seguro de que desea marcar la cita #${idCita} como "${nuevoEstado}"?`);
+            if (!confirmacion) return;
             try {
-                // Enviamos la petición PUT al servidor FastAPI
                 const res = await fetch(`${API_URL}/citas/${idCita}/estado`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ estado: nuevoEstado })
                 });
-
                 if(res.ok) {
                     alert(`✅ Acción exitosa: La cita #${idCita} ahora está ${nuevoEstado}.`);
-                    cargarCitas(); // Refrescamos la tabla instantáneamente para ver el cambio
+                    cargarCitas();
                 } else {
                     const err = await res.json();
                     alert(`Error al actualizar la cita: ${err.detail}`);
@@ -372,178 +403,284 @@
         }
 
         // ==========================================
-        // LÓGICA DEL FORMULARIO CRUD (NUEVA CITA)
+        // MÓDULO GESTIÓN DE USUARIOS (ADMIN)
         // ==========================================
+        let todosLosUsuarios = [];
+        let filtroRolActivo = 'todos';
 
+        async function abrirModalUsuarios() {
+            document.getElementById('modalUsuarios').classList.remove('hidden');
+            await cargarUsuarios();
+        }
+
+        function cerrarModalUsuarios() {
+            document.getElementById('modalUsuarios').classList.add('hidden');
+            document.getElementById('formNuevoUsuario').reset();
+            ocultarMensajeRegistro();
+        }
+
+        async function cargarUsuarios() {
+            const lista = document.getElementById('listaUsuarios');
+            lista.innerHTML = '<p class="text-slate-400 text-sm text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando...</p>';
+            try {
+                const res = await fetch(`${API_URL}/usuarios`);
+                if (res.ok) {
+                    const data = await res.json();
+                    todosLosUsuarios = data.usuarios;
+                    renderizarUsuarios();
+                } else {
+                    mostrarUsuariosDemo();
+                }
+            } catch (err) {
+                mostrarUsuariosDemo();
+            }
+        }
+
+        function mostrarUsuariosDemo() {
+            todosLosUsuarios = [
+                { id: 1, usuario: 'admin',      nombre_completo: 'Administrador Central',     correo: 'admin@hospital.com',    rol: 'admin' },
+                { id: 2, usuario: 'dr_perez',   nombre_completo: 'Dr. Perez (Cirujano)',      correo: 'perez@hospital.com',    rol: 'doctor' },
+                { id: 3, usuario: 'dra_miranda',nombre_completo: 'Dra. Miranda (Pediatra)',   correo: 'miranda@hospital.com',  rol: 'doctor' },
+                { id: 4, usuario: 'juan',       nombre_completo: 'Juan Gabriel Rada Escobar', correo: 'juan@hospital.com',     rol: 'paciente' },
+            ];
+            const lista = document.getElementById('listaUsuarios');
+            lista.innerHTML = `
+                <div id="avisoDemo" class="mb-3 bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Mostrando usuarios de demo. Los usuarios que crees sí se guardan en la base de datos.
+                </div>`;
+            renderizarUsuarios(true);
+        }
+
+        function renderizarUsuarios(append = false) {
+            const lista = document.getElementById('listaUsuarios');
+            const aviso = lista.querySelector('#avisoDemo');
+            if (!append) lista.innerHTML = '';
+
+            const filtrados = filtroRolActivo === 'todos'
+                ? todosLosUsuarios
+                : todosLosUsuarios.filter(u => u.rol === filtroRolActivo);
+
+            // Re-agregar aviso si existía
+            if (aviso && !lista.querySelector('#avisoDemo')) lista.insertBefore(aviso, lista.firstChild);
+
+            if (filtrados.length === 0) {
+                lista.innerHTML += '<p class="text-slate-400 text-sm text-center py-8">No hay usuarios con ese rol.</p>';
+                return;
+            }
+
+            const coloresRol = { admin: 'bg-purple-100 text-purple-700', doctor: 'bg-blue-100 text-blue-700', paciente: 'bg-emerald-100 text-emerald-700' };
+            const iconosRol  = { admin: 'fa-shield-alt', doctor: 'fa-user-md', paciente: 'fa-user' };
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 gap-3';
+
+            filtrados.forEach(u => {
+                const color = coloresRol[u.rol] || 'bg-slate-100 text-slate-700';
+                const icono = iconosRol[u.rol] || 'fa-user';
+                const card = document.createElement('div');
+                card.className = 'flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 transition';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0">
+                        <i class="fas ${icono}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-slate-800 text-sm truncate">${u.nombre_completo}</p>
+                        <p class="text-xs text-slate-500 truncate">@${u.usuario} · ${u.correo || 'Sin correo'}</p>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full ${color} shrink-0">${u.rol}</span>`;
+                grid.appendChild(card);
+            });
+
+            lista.appendChild(grid);
+
+            // Resaltar botón de filtro activo
+            document.querySelectorAll('.filtro-rol-btn').forEach(btn => {
+                btn.className = 'filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200';
+            });
+            const idBtn = 'filtro' + filtroRolActivo.charAt(0).toUpperCase() + filtroRolActivo.slice(1);
+            const btnActivo = document.getElementById(idBtn) || document.getElementById('filtroTodos');
+            if (btnActivo) btnActivo.className = 'filtro-rol-btn bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold';
+        }
+
+        function filtrarUsuariosPorRol(rol) {
+            filtroRolActivo = rol;
+            const lista = document.getElementById('listaUsuarios');
+            const aviso = lista.querySelector('#avisoDemo');
+            lista.innerHTML = '';
+            if (aviso) lista.appendChild(aviso);
+            renderizarUsuarios(!!aviso);
+        }
+
+        function mostrarMensajeRegistro(texto, tipo) {
+            const div = document.getElementById('mensajeRegistro');
+            div.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+            div.classList.add(tipo === 'ok' ? 'bg-green-100' : 'bg-red-100', tipo === 'ok' ? 'text-green-700' : 'text-red-700');
+            div.innerText = texto;
+            div.classList.remove('hidden');
+        }
+
+        function ocultarMensajeRegistro() {
+            document.getElementById('mensajeRegistro').classList.add('hidden');
+        }
+
+        document.getElementById('formNuevoUsuario').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnCrearUsuario');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Creando...';
+            ocultarMensajeRegistro();
+
+            const nuevoUsuario = {
+                usuario:         document.getElementById('nuevoUsuario').value.trim(),
+                password:        document.getElementById('nuevoPassword').value,
+                rol:             document.getElementById('nuevoRol').value,
+                nombre_completo: document.getElementById('nuevoNombre').value.trim(),
+                correo:          document.getElementById('nuevoCorreo').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/registro`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(nuevoUsuario)
+                });
+                if (res.ok) {
+                    mostrarMensajeRegistro(`✅ Usuario "${nuevoUsuario.usuario}" creado correctamente.`, 'ok');
+                    document.getElementById('formNuevoUsuario').reset();
+                    // Agregar a la lista local para que aparezca sin recargar
+                    todosLosUsuarios.push({ id: Date.now(), ...nuevoUsuario });
+                    filtroRolActivo = 'todos';
+                    const lista = document.getElementById('listaUsuarios');
+                    const aviso = lista.querySelector('#avisoDemo');
+                    lista.innerHTML = '';
+                    if (aviso) lista.appendChild(aviso);
+                    renderizarUsuarios(!!aviso);
+                } else {
+                    const err = await res.json();
+                    const msg = typeof err.detail === 'string' ? err.detail : 'El usuario ya existe o hubo un error.';
+                    mostrarMensajeRegistro(`❌ Error: ${msg}`, 'error');
+                }
+            } catch (error) {
+                mostrarMensajeRegistro('❌ Error de conexión con el servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Crear Usuario';
+            }
+        };
+
+        // ==========================================
+        // NUEVA CITA (PACIENTE)
+        // ==========================================
         async function abrirModalNuevaCita() {
-            // 1. Mostrar la ventana modal
             document.getElementById('modalNuevaCita').classList.remove('hidden');
-
-            // 2. Autocompletar el nombre del paciente bloqueando el campo por seguridad
             const userData = JSON.parse(localStorage.getItem('healthsync_user'));
             document.getElementById('citaPaciente').value = userData.nombre_completo;
-
-            // 3. Consultar la API para obtener los horarios disponibles
             try {
                 const res = await fetch(`${API_URL}/horarios`);
                 if(res.ok) {
                     const data = await res.json();
                     const selectHorario = document.getElementById('citaHorario');
-                    
-                    // Limpiar el select
                     selectHorario.innerHTML = '<option value="">Seleccione un doctor y horario...</option>';
-
-                    // Filtrar SOLO los que tienen estado 'Disponible'
                     const disponibles = data.horarios.filter(h => h.estado === 'Disponible');
-
                     if(disponibles.length === 0) {
                         selectHorario.innerHTML = '<option value="">No hay horarios disponibles por ahora</option>';
                         return;
                     }
-
-                    // Llenar las opciones
                     disponibles.forEach(h => {
-                        // Guardamos los datos extra en atributos "data-" para usarlos al guardar
-                        selectHorario.innerHTML += `<option value="${h.id}" data-doctor="${h.doctor}" data-fecha="${h.fecha_hora}">
-                            ${h.doctor} - ${h.fecha_hora}
-                        </option>`;
+                        selectHorario.innerHTML += `<option value="${h.id}" data-doctor="${h.doctor}" data-fecha="${h.fecha_hora}">${h.doctor} - ${h.fecha_hora}</option>`;
                     });
                 }
-            } catch(error) {
-                console.error("Error cargando horarios:", error);
-            }
+            } catch(error) { console.error("Error cargando horarios:", error); }
         }
 
         function cerrarModalNuevaCita() {
             document.getElementById('modalNuevaCita').classList.add('hidden');
-            document.getElementById('formNuevaCita').reset(); // Limpiar formulario al cerrar
+            document.getElementById('formNuevaCita').reset();
         }
 
-        // 4. Enviar la nueva cita a la Base de Datos
         document.getElementById('formNuevaCita').onsubmit = async (e) => {
-            e.preventDefault(); // Evitar que la página se recargue
-
+            e.preventDefault();
             const selectHorario = document.getElementById('citaHorario');
             const opcionSeleccionada = selectHorario.options[selectHorario.selectedIndex];
-
-            if(!opcionSeleccionada.value) {
-                alert("Por favor seleccione un doctor y horario válido.");
-                return;
-            }
-
-            // Construir el objeto JSON que espera tu API en Python
+            if(!opcionSeleccionada.value) { alert("Por favor seleccione un doctor y horario válido."); return; }
             const nuevaCita = {
-                paciente: document.getElementById('citaPaciente').value,
-                doctor: opcionSeleccionada.getAttribute('data-doctor'),
-                fecha: opcionSeleccionada.getAttribute('data-fecha'),
-                motivo: document.getElementById('citaMotivo').value,
+                paciente:   document.getElementById('citaPaciente').value,
+                doctor:     opcionSeleccionada.getAttribute('data-doctor'),
+                fecha:      opcionSeleccionada.getAttribute('data-fecha'),
+                motivo:     document.getElementById('citaMotivo').value,
                 horario_id: parseInt(opcionSeleccionada.value)
             };
-
             try {
                 const res = await fetch(`${API_URL}/agendar`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(nuevaCita)
                 });
-
                 if(res.ok) {
-                    // Mensaje de éxito claro y descriptivo
                     alert("¡Cita agendada con éxito! Su doctor ha sido notificado.");
-                    cerrarModalNuevaCita(); // Cerrar popup
-                    cargarCitas(); // Refrescar la tabla de fondo automáticamente
+                    cerrarModalNuevaCita();
+                    cargarCitas();
                 } else {
                     const err = await res.json();
                     alert(`Ocurrió un error al agendar: ${err.detail}`);
                 }
-            } catch(error) {
-                alert("Error de conexión con el servidor al intentar guardar.");
-            }
+            } catch(error) { alert("Error de conexión con el servidor al intentar guardar."); }
         };
-        // ==========================================
-        // LÓGICA DEL FORMULARIO CRUD (NUEVO HORARIO DOCTOR)
-        // ==========================================
 
+        // ==========================================
+        // HORARIO DOCTOR
+        // ==========================================
         function abrirModalNuevoHorario() {
             document.getElementById('modalNuevoHorario').classList.remove('hidden');
-            
-            // Autocompletar el nombre del doctor usando los datos de sesión
             const userData = JSON.parse(localStorage.getItem('healthsync_user'));
             document.getElementById('horarioDoctor').value = userData.nombre_completo;
         }
 
         function cerrarModalNuevoHorario() {
             document.getElementById('modalNuevoHorario').classList.add('hidden');
-            document.getElementById('formNuevoHorario').reset(); // Limpiar inputs al cerrar
+            document.getElementById('formNuevoHorario').reset();
         }
 
-        // Enviar la jornada laboral masiva a la Base de Datos
         document.getElementById('formNuevoHorario').onsubmit = async (e) => {
-            e.preventDefault(); 
-            
+            e.preventDefault();
             const doctor = document.getElementById('horarioDoctor').value;
             const fecha = document.getElementById('horarioSoloFecha').value;
             const horaInicio = document.getElementById('horarioInicio').value;
             const horaFin = document.getElementById('horarioFin').value;
             const intervaloMinutos = parseInt(document.getElementById('horarioIntervalo').value);
-
-            // Creamos objetos Date de JavaScript para poder sumarles los minutos
             let turnoActual = new Date(`${fecha}T${horaInicio}`);
             const turnoFinal = new Date(`${fecha}T${horaFin}`);
-
             let turnosGenerados = 0;
-
-            // Feedback visual: Bloqueamos el botón para que el usuario no haga doble clic
             const btnSubmit = e.target.querySelector('button[type="submit"]');
             btnSubmit.innerText = "Generando...";
             btnSubmit.disabled = true;
-
             try {
-                // Bucle que crea turnos hasta llegar a la hora de salida
                 while (turnoActual < turnoFinal) {
-                    
-                    // Extraemos las horas y minutos asegurándonos de que tengan 2 dígitos (ej. 08:00)
                     const horas = String(turnoActual.getHours()).padStart(2, '0');
-                    const mins = String(turnoActual.getMinutes()).padStart(2, '0');
-                    const fechaFormateada = `${fecha} ${horas}:${mins}`;
-
-                    const nuevoHorario = {
-                        doctor: doctor,
-                        fecha_hora: fechaFormateada
-                    };
-
-                    // Enviamos este turno específico a tu API en Python
+                    const mins  = String(turnoActual.getMinutes()).padStart(2, '0');
                     await fetch(`${API_URL}/horarios`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(nuevoHorario)
+                        body: JSON.stringify({ doctor, fecha_hora: `${fecha} ${horas}:${mins}` })
                     });
-
                     turnosGenerados++;
-
-                    // Le sumamos los minutos del intervalo para calcular el siguiente turno
                     turnoActual.setMinutes(turnoActual.getMinutes() + intervaloMinutos);
                 }
-
-                // Mensaje de éxito claro y descriptivo
                 alert(`¡Éxito! Se generaron ${turnosGenerados} turnos disponibles para el día ${fecha}.`);
-                cerrarModalNuevoHorario(); 
-
+                cerrarModalNuevoHorario();
             } catch(error) {
                 alert("Ocurrió un error de conexión al intentar generar los turnos.");
             } finally {
-                // Restauramos el botón
                 btnSubmit.innerText = "Generar Turnos";
                 btnSubmit.disabled = false;
             }
         };
 
         // ==========================================
-        // LÓGICA PARA CAMBIAR CONTRASEÑA
+        // CAMBIAR CONTRASEÑA
         // ==========================================
-        function abrirModalPassword() {
-            document.getElementById('modalCambiarPassword').classList.remove('hidden');
-        }
+        function abrirModalPassword() { document.getElementById('modalCambiarPassword').classList.remove('hidden'); }
 
         function cerrarModalPassword() {
             document.getElementById('modalCambiarPassword').classList.add('hidden');
@@ -552,57 +689,36 @@
 
         document.getElementById('formCambiarPassword').onsubmit = async (e) => {
             e.preventDefault();
-            
-            const actual = document.getElementById('passActual').value;
-            const nuevo = document.getElementById('passNuevo').value;
+            const actual    = document.getElementById('passActual').value;
+            const nuevo     = document.getElementById('passNuevo').value;
             const confirmar = document.getElementById('passConfirmar').value;
-
-            // Validación de seguridad en el frontend
-            if (nuevo !== confirmar) {
-                alert("Las nuevas contraseñas no coinciden. Inténtalo de nuevo.");
-                return;
-            }
-
-            // Obtenemos el nombre de usuario de la sesión actual
+            if (nuevo !== confirmar) { alert("Las nuevas contraseñas no coinciden. Inténtalo de nuevo."); return; }
             const userData = JSON.parse(localStorage.getItem('healthsync_user'));
-
-            // 🛡️ PARCHE DE SEGURIDAD: Verificamos si la sesión es antigua o está corrupta
             if (!userData || !userData.usuario) {
-                alert("Tu sesión está desactualizada o es inválida. El sistema cerrará la sesión automáticamente para renovar tus credenciales de forma segura.");
-                cerrarSesion();
-                return; // Detenemos la ejecución
+                alert("Tu sesión está desactualizada. El sistema cerrará la sesión automáticamente.");
+                cerrarSesion(); return;
             }
-
             try {
                 const res = await fetch(`${API_URL}/cambiar-password`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        usuario: userData.usuario,
-                        password_actual: actual,
-                        password_nuevo: nuevo
-                    })
+                    body: JSON.stringify({ usuario: userData.usuario, password_actual: actual, password_nuevo: nuevo })
                 });
-
                 if(res.ok) {
-                    alert("¡Tu contraseña ha sido actualizada con éxito! Por favor, inicia sesión nuevamente con tu nueva clave.");
-                    cerrarSesion(); // Lo sacamos para que pruebe su nueva contraseña
+                    alert("¡Tu contraseña ha sido actualizada con éxito! Por favor, inicia sesión nuevamente.");
+                    cerrarSesion();
                 } else {
                     const err = await res.json();
-                    
-                    // 🛡️ MEJORA UX: Convertimos el error a texto legible para evitar el [object Object]
-                    // Si el error es un Array (como el 422), lo formateamos. Si es texto, lo mostramos normal.
                     let mensajeError = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail, null, 2);
                     alert(`No se pudo actualizar la contraseña:\n\n${mensajeError}`);
                 }
-            } catch(error) {
-                alert("Error crítico de conexión con el servidor.");
-            }
+            } catch(error) { alert("Error crítico de conexión con el servidor."); }
         };
-        
+
     </script>
+
     <footer class="mt-8 text-center text-slate-400 text-sm border-t pt-4">
-         &copy; 2026 HealthSync Hospital. Desarrollado por mi codigo no corre.
-     </footer>
+        &copy; 2026 HealthSync Hospital. Desarrollado por mi codigo no corre.
+    </footer>
 </body>
 </html>
