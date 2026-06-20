@@ -437,51 +437,48 @@
 </head>
 <body>
 
-    <!-- ===== NORMALIZACIÓN / PROTECCIÓN DE URLS ===== -->
+    <!-- ===== NORMALIZACIÓN / PROTECCIÓN DE URLS (SAFE) ===== -->
     <script>
-        (function normalizeUrl() {
+        (function safeNormalize() {
             try {
-                const path = window.location.pathname;
-                if (!path || path === '/' || path === '/index.html') return;
+                const origin = window.location.origin;
+                const path = window.location.pathname || '/';
+                const allowed = ['/', '/index.html', '/inicio-sesion.html', '/recuperar.html', '/registro.html'];
+                if (allowed.includes(path)) return;
 
-                // Intentos: 1) si falta .html -> probar con .html
-                // 2) si hay dígitos al final -> eliminar dígitos y probar con .html
-                // 3) si nada existe, redirigir a / (index)
-
-                const tryFetch = (p) => fetch(p, { method: 'HEAD' });
-
-                const attemptHtml = (p) => {
-                    const candidate = p.endsWith('.html') ? p : (p.endsWith('/') ? p + 'index.html' : p + '.html');
-                    return tryFetch(candidate).then(res => res.ok ? candidate : null).catch(() => null);
+                const headOk = async (p) => {
+                    try {
+                        const res = await fetch(p, { method: 'HEAD' });
+                        return res.ok;
+                    } catch { return false; }
                 };
 
-                // Primero: probar añadiendo .html
-                attemptHtml(path).then(found => {
-                    if (found) {
-                        // Si la URL already apunta a ese recurso, reemplazamos la URL sin recargar historico
-                        if (window.location.pathname !== new URL(found, window.location.origin).pathname) {
-                            window.location.replace(found + window.location.search + window.location.hash);
+                (async () => {
+                    // 1) probar candidato con .html
+                    let candidate = path.endsWith('.html') ? path : (path.endsWith('/') ? path + 'index.html' : path + '.html');
+                    if (await headOk(candidate)) {
+                        const url = new URL(candidate, origin);
+                        if (url.origin === origin) {
+                            history.replaceState(null, '', url.pathname + window.location.search + window.location.hash);
                         }
                         return;
                     }
-                    // Segundo: quitar dígitos finales y probar
-                    const stripped = path.replace(/\d+$/,'');
-                    if (stripped && stripped !== path) {
-                        attemptHtml(stripped).then(found2 => {
-                            if (found2) {
-                                window.location.replace(found2 + window.location.search + window.location.hash);
-                            } else {
-                                window.location.replace('/');
-                            }
-                        }).catch(() => window.location.replace('/'));
-                    } else {
-                        window.location.replace('/');
+
+                    // 2) quitar dígitos al final y probar
+                    const stripped = path.replace(/\d+$/, '') || '/';
+                    let candidate2 = stripped.endsWith('.html') ? stripped : (stripped.endsWith('/') ? stripped + 'index.html' : stripped + '.html');
+                    if (await headOk(candidate2)) {
+                        const url2 = new URL(candidate2, origin);
+                        if (url2.origin === origin) {
+                            history.replaceState(null, '', url2.pathname + window.location.search + window.location.hash);
+                        }
+                        return;
                     }
-                }).catch(() => {
-                    // En caso de error de red, no forzar redirect para evitar bucles.
-                    console.warn('Normalización: no se pudo verificar la URL actual');
-                });
-            } catch (e) { console.error('Error en normalización de URL', e); }
+
+                    // 3) fallback seguro al root (sin navegar)
+                    history.replaceState(null, '', '/');
+                })();
+            } catch (e) { console.warn('safeNormalize error', e); }
         })();
     </script>
 

@@ -248,6 +248,31 @@
 </head>
 <body>
 
+    <!-- ===== NORMALIZACIÓN / PROTECCIÓN DE URLS (SAFE) ===== -->
+    <script>
+        (function safeNormalize() {
+            try {
+                const origin = window.location.origin;
+                const path = window.location.pathname || '/';
+                const allowed = ['/', '/index.html', '/inicio-sesion.html', '/recuperar.html', '/registro.html'];
+                if (allowed.includes(path)) return;
+
+                const headOk = async (p) => {
+                    try { const res = await fetch(p, { method: 'HEAD' }); return res.ok; } catch { return false; }
+                };
+
+                (async () => {
+                    let candidate = path.endsWith('.html') ? path : (path.endsWith('/') ? path + 'index.html' : path + '.html');
+                    if (await headOk(candidate)) { const url = new URL(candidate, origin); if (url.origin === origin) history.replaceState(null, '', url.pathname + window.location.search + window.location.hash); return; }
+                    const stripped = path.replace(/\d+$/, '') || '/';
+                    let candidate2 = stripped.endsWith('.html') ? stripped : (stripped.endsWith('/') ? stripped + 'index.html' : stripped + '.html');
+                    if (await headOk(candidate2)) { const url2 = new URL(candidate2, origin); if (url2.origin === origin) history.replaceState(null, '', url2.pathname + window.location.search + window.location.hash); return; }
+                    history.replaceState(null, '', '/');
+                })();
+            } catch (e) { console.warn('safeNormalize error', e); }
+        })();
+    </script>
+
     <div class="main-container px-4">
         <!-- Tarjeta principal -->
         <div class="card-registro p-8 md:p-10">
