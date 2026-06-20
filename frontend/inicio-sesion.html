@@ -2,46 +2,254 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Iniciar Sesión - HealthSync Hospital</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión · HealthSync</title>
+    <!-- Tailwind + Font Awesome (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Estilos con fondo negro y elementos neutros -->
+    <style>
+        body {
+            background: #000000; /* fondo negro puro */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        /* Tarjeta con estética neutra y elegante sobre fondo negro */
+        .card-login {
+            background: #fcfcfd;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            max-width: 440px;
+        }
+        .card-login:hover {
+            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.7);
+            transform: translateY(-2px);
+        }
+
+        /* Inputs con estilo neutro */
+        .input-neutral {
+            background: #f5f6f8;
+            border: 1px solid #d5d8de;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+            color: #2c313a;
+            font-weight: 450;
+            font-size: 0.95rem;
+        }
+        .input-neutral:focus {
+            outline: none;
+            border-color: #b0b8c4;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(176, 184, 196, 0.15);
+        }
+        .input-neutral::placeholder {
+            color: #a8b2c0;
+            font-weight: 350;
+        }
+
+        /* Botón primario neutro */
+        .btn-primary {
+            background: #2d3748;
+            color: white;
+            font-weight: 600;
+            padding: 0.9rem;
+            border-radius: 40px;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(45, 55, 72, 0.2);
+            letter-spacing: 0.3px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-primary:hover {
+            background: #1a202c;
+            box-shadow: 0 8px 20px rgba(45, 55, 72, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* Enlaces y textos neutros */
+        .link-neutral {
+            color: #5a6475;
+            transition: color 0.15s;
+            font-weight: 450;
+            text-decoration: none;
+        }
+        .link-neutral:hover {
+            color: #2c313a;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        /* Icono de ojo alineado */
+        .eye-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 2.7rem;
+            color: #9aa4b8;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 30px;
+            transition: 0.15s;
+        }
+        .eye-toggle:hover {
+            color: #2d3748;
+            background: #eef0f3;
+        }
+
+        /* Footer sutil */
+        .footer-note {
+            color: #9aa4b8;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* separador */
+        .divider-neutral {
+            border: 0;
+            border-top: 1px solid #e9ecf2;
+            margin: 1.8rem 0 1rem;
+        }
+
+        /* etiquetas */
+        .label-neutral {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #3d4757;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.2px;
+        }
+
+        .brand-icon {
+            color: #2d3748;
+            opacity: 0.7;
+        }
+        .brand-title {
+            color: #1a202c;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .brand-sub {
+            color: #6b7689;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* Copyright sobre fondo negro */
+        .copyright {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        /* responsive */
+        @media (max-width: 480px) {
+            .card-login {
+                border-radius: 1.5rem;
+                padding: 1.8rem 1.2rem;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans flex justify-center items-center h-screen">
-    <div class="mt-8 text-center text-xs text-slate-400">
-         &copy; 2026 HealthSync Hospital - Sistema Seguro
-     </div>
-    <section class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-blue-700 mb-2">HealthSync Hospital</h1>
-            <h2 class="text-xl text-slate-600">Iniciar Sesión</h2>
-        </div>
+<body>
 
-        <form id="loginForm" class="space-y-6">
-            <div>
-                <label for="loginUsuario" class="block text-sm font-medium text-slate-700 mb-1">Usuario o Correo Electrónico</label>
-                <input id="loginUsuario" type="text" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+    <div class="w-full max-w-md px-4">
+        <!-- Tarjeta principal -->
+        <div class="card-login p-8 md:p-10">
+
+            <!-- encabezado -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-1">
+                    <i class="fas fa-heartbeat text-2xl brand-icon"></i>
+                    <span class="text-2xl font-bold brand-title">HealthSync</span>
+                </div>
+                <span class="text-sm font-medium brand-sub tracking-wide">Hospital · Sistema seguro</span>
+                <div class="mt-4 h-0.5 w-12 mx-auto bg-slate-200 rounded-full"></div>
+                <h2 class="text-xl font-semibold text-slate-700 mt-4">Iniciar sesión</h2>
             </div>
-            
-            <div class="relative">
-                <label for="loginPassword" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-                <input id="loginPassword" type="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition pr-10">
-                <button type="button" onclick="togglePassword()" class="absolute right-3 top-9 text-slate-400 hover:text-blue-600 focus:outline-none">
-                    <i id="eyeIcon" class="fas fa-eye"></i>
+
+            <!-- formulario -->
+            <form id="loginForm" class="space-y-5">
+
+                <!-- usuario -->
+                <div>
+                    <label for="loginUsuario" class="label-neutral">
+                        <i class="far fa-user mr-1.5 text-slate-400"></i> Usuario o correo
+                    </label>
+                    <input id="loginUsuario" type="text" required 
+                           class="input-neutral" 
+                           placeholder="ejemplo@healthsync.com" 
+                           autocomplete="username">
+                </div>
+
+                <!-- contraseña con toggle -->
+                <div class="relative">
+                    <label for="loginPassword" class="label-neutral">
+                        <i class="fas fa-lock mr-1.5 text-slate-400"></i> Contraseña
+                    </label>
+                    <input id="loginPassword" type="password" required 
+                           class="input-neutral pr-12" 
+                           placeholder="••••••••" 
+                           autocomplete="current-password">
+                    <button type="button" onclick="togglePassword()" class="eye-toggle" aria-label="Mostrar contraseña">
+                        <i id="eyeIcon" class="fas fa-eye"></i>
+                    </button>
+                </div>
+
+                <!-- enlace olvidaste contraseña -->
+                <div class="flex justify-end -mt-1">
+                    <a href="recuperar.html" class="text-sm link-neutral">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+
+                <!-- botón de acceso -->
+                <button type="submit" class="btn-primary mt-2">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Ingresar al sistema
                 </button>
+            </form>
+
+            <!-- separador + registro -->
+            <hr class="divider-neutral">
+            <div class="text-center text-sm text-slate-500">
+                ¿No tienes una cuenta? 
+                <a href="registro.html" class="font-semibold link-neutral">
+                    Regístrate aquí <i class="fas fa-arrow-right text-xs ml-1"></i>
+                </a>
             </div>
 
-            <div class="flex justify-end">
-                <a href="recuperar.html" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+            <!-- pequeño footer dentro de la tarjeta -->
+            <div class="mt-6 text-center footer-note">
+                <i class="fas fa-shield-alt mr-1"></i> Acceso seguro · autenticación con token
             </div>
-
-            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">Ingresar al Sistema</button>
-        </form>
-
-        <div class="mt-8 text-center text-sm text-slate-600 border-t pt-4">
-            ¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 hover:underline font-semibold">Regístrate aquí</a>
         </div>
-    </section>
 
+        <!-- copyright fuera de la tarjeta (sobre fondo negro) -->
+        <div class="copyright">
+            &copy; 2026 HealthSync Hospital · Sistema Seguro
+        </div>
+    </div>
+
+    <!-- ====== JAVASCRIPT (NO TOCADO) ====== -->
     <script>
         const API_URL = "http://localhost:8000";
 
@@ -75,10 +283,8 @@
 
                 if(res.ok) {
                     const data = await res.json();
-                    // Gestión de Sesiones: Guardamos el token y los datos de forma segura
                     localStorage.setItem('healthsync_token', data.access_token);
                     localStorage.setItem('healthsync_user', JSON.stringify(data.usuario));
-                    // Redirigimos al sistema principal
                     window.location.href = 'index.html'; 
                 } else {
                     const err = await res.json();
@@ -89,5 +295,6 @@
             }
         };
     </script>
+
 </body>
 </html>
