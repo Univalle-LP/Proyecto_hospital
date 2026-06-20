@@ -2,12 +2,442 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bandeja Principal - HealthSync Hospital</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandeja Principal · HealthSync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="bg-slate-50 font-sans">
+    <style>
+        /* ===== ESTILOS GLOBALES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 0.8rem 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .navbar-brand i {
+            color: #60a5fa;
+            margin-right: 0.5rem;
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-badge i {
+            color: #60a5fa;
+        }
+
+        .user-badge .role {
+            background: rgba(96, 165, 250, 0.15);
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-logout {
+            background: #dc2626;
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-change-password {
+            background: rgba(251, 191, 36, 0.85);
+            color: #1a202c;
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-change-password:hover {
+            background: #fbbf24;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+
+        /* ===== TARJETAS ===== */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ===== TABLA ===== */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .table-container table {
+            min-width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-container thead {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table-container thead th {
+            padding: 1rem 1.5rem;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .table-container tbody td {
+            padding: 1rem 1.5rem;
+            font-size: 0.9rem;
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-container tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .table-container tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== BADGES ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-pendiente {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-reservado {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-realizada {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-validada {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-cancelada {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ===== BOTONES DE ACCIÓN ===== */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-action-success:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .btn-action-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-action-danger:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .btn-action-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-action-primary:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        /* ===== FILTROS ===== */
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .filter-section .field {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter-section label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-section input,
+        .filter-section select {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .filter-section input:focus,
+        .filter-section select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: white;
+        }
+
+        .btn-filter {
+            background: #1e293b;
+            color: white;
+            padding: 0.6rem 1.8rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-filter:hover {
+            background: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+        }
+
+        /* ===== TÍTULOS ===== */
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* ===== BOTONES DE ROL ===== */
+        .btn-role {
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-role-primary {
+            background: #1e293b;
+            color: white;
+        }
+        .btn-role-primary:hover {
+            background: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+        }
+
+        .btn-role-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-role-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-role-purple {
+            background: #8b5cf6;
+            color: white;
+        }
+        .btn-role-purple:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-role-indigo {
+            background: #6366f1;
+            color: white;
+        }
+        .btn-role-indigo:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        /* ===== MODALES ===== */
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.6rem 1rem;
+            }
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            .user-badge {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.7rem;
+            }
+            .btn-logout,
+            .btn-change-password {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.8rem;
+            }
+            .filter-section .field {
+                min-width: 100%;
+            }
+            .page-title {
+                font-size: 1.4rem;
+            }
+            .table-container tbody td {
+                padding: 0.7rem 1rem;
+                font-size: 0.8rem;
+            }
+            .table-container thead th {
+                padding: 0.7rem 1rem;
+                font-size: 0.6rem;
+            }
+            .btn-role {
+                font-size: 0.75rem;
+                padding: 0.4rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar .flex.items-center {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== VERIFICACIÓN DE SESIÓN ===== -->
     <script>
         const token = localStorage.getItem('healthsync_token');
         if (!token) {
@@ -15,87 +445,104 @@
         }
     </script>
 
-    <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold"><i class="fas fa-hospital-user mr-2"></i>HealthSync</h1>
-            <div class="flex items-center space-x-4">
-                <span id="userInfo" class="text-sm bg-blue-800 px-3 py-1 rounded-full border border-blue-600">
-                    <i class="fas fa-user-circle mr-1"></i> <span id="userNameDisplay">Cargando...</span> (<span id="userRoleDisplay"></span>)
+            <div class="navbar-brand">
+                <i class="fas fa-heartbeat"></i>
+                HealthSync
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="user-badge">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userNameDisplay">Cargando...</span>
+                    <span class="role" id="userRoleDisplay">ROL</span>
                 </span>
-                <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-bold transition shadow">
-                    <i class="fas fa-sign-out-alt mr-1"></i> Salir
-                </button>
-                <button onclick="abrirModalPassword()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded text-sm font-bold transition shadow mr-2">
+                <button onclick="abrirModalPassword()" class="btn-change-password">
                     <i class="fas fa-key mr-1"></i> Cambiar Clave
+                </button>
+                <button onclick="cerrarSesion()" class="btn-logout">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Salir
                 </button>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto mt-8 p-4">
-        
-        <div class="flex justify-between items-center mb-6 border-b pb-4">
+    <!-- ===== MAIN ===== -->
+    <main class="container mx-auto px-4 py-6">
+
+        <!-- Cabecera -->
+        <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
             <div>
-                <h2 class="text-2xl font-bold text-slate-800">Panel de Gestión</h2>
-                <p id="subtituloRol" class="text-slate-500 text-sm">Cargando permisos...</p>
+                <h1 class="page-title">Panel de Gestión</h1>
+                <p id="subtituloRol" class="page-subtitle">Cargando permisos...</p>
             </div>
-            <div id="botonesRol" class="flex gap-2 flex-wrap justify-end">
+            <div id="botonesRol" class="flex gap-2 flex-wrap">
+                <!-- Botones dinámicos según rol -->
             </div>
         </div>
 
-        <section class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-slate-600 mb-1">Buscar Paciente o Doctor</label>
-                <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                    <input type="text" id="buscador" placeholder="Escribe un nombre..." class="w-full pl-10 p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
+        <!-- Filtros -->
+        <div class="filter-section">
+            <div class="field">
+                <label><i class="fas fa-search mr-1"></i> Buscar</label>
+                <input type="text" id="buscador" placeholder="Nombre de paciente o doctor...">
             </div>
-            
-            <div class="w-48">
-                <label class="block text-sm font-medium text-slate-600 mb-1">Filtrar por Estado</label>
-                <select id="filtroEstado" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="field">
+                <label><i class="fas fa-filter mr-1"></i> Estado</label>
+                <select id="filtroEstado">
                     <option value="todos">Todos los estados</option>
                     <option value="Pendiente">Pendiente</option>
                     <option value="Reservado">Reservado</option>
                     <option value="Cancelada">Cancelada</option>
+                    <option value="Realizada">Realizada</option>
+                    <option value="Validada">Validada</option>
                 </select>
             </div>
-
-            <button onclick="cargarCitas()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded font-semibold transition">
-                <i class="fas fa-filter mr-1"></i> Filtrar
+            <button onclick="cargarCitas()" class="btn-filter">
+                <i class="fas fa-sync-alt mr-1"></i> Filtrar
             </button>
-        </section>
+        </div>
 
-        <section class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full text-left border-collapse">
+        <!-- Tabla de citas -->
+        <div class="table-container">
+            <table>
                 <thead>
-                    <tr class="bg-slate-100 text-slate-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 font-semibold">ID</th>
-                        <th class="py-3 px-6 font-semibold">Paciente</th>
-                        <th class="py-3 px-6 font-semibold">Doctor</th>
-                        <th class="py-3 px-6 font-semibold">Fecha y Hora</th>
-                        <th class="py-3 px-6 font-semibold">Estado</th>
-                        <th class="py-3 px-6 font-semibold text-center">Acciones</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Paciente</th>
+                        <th>Doctor</th>
+                        <th>Fecha y Hora</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tablaCitasBody" class="text-slate-700 text-sm font-light">
+                <tbody id="tablaCitasBody">
                     <tr>
-                        <td colspan="6" class="py-8 text-center text-slate-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>
+                        <td colspan="6" class="text-center py-8 text-slate-400">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>
                             Cargando citas del sistema...
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </section>
+        </div>
 
     </main>
 
-    <!-- ===================== MODAL: GESTIÓN DE USUARIOS ===================== -->
-    <div id="modalUsuarios" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex justify-center items-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div class="bg-purple-700 p-4 text-white flex justify-between items-center shrink-0">
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        &copy; 2026 HealthSync Hospital. Todos los derechos reservados.
+    </footer>
+
+    <!-- ============================================================ -->
+    <!-- ===== MODALES (TODOS LOS MODALES CON INTERFAZ MEJORADA) ===== -->
+    <!-- ============================================================ -->
+
+    <!-- ===== MODAL: GESTIÓN DE USUARIOS ===== -->
+    <div id="modalUsuarios" class="hidden fixed inset-0 modal-overlay flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden modal-content">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-4 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-lg"><i class="fas fa-users-cog mr-2"></i>Gestión de Usuarios</h3>
                 <button onclick="cerrarModalUsuarios()" class="hover:text-purple-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
@@ -108,56 +555,56 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
                             <input type="text" id="nuevoNombre" required placeholder="Ej: Dr. García López"
-                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Usuario (login)</label>
                             <input type="text" id="nuevoUsuario" required placeholder="Ej: dr_garcia"
-                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico</label>
                             <input type="email" id="nuevoCorreo" required placeholder="Ej: garcia@hospital.com"
-                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña</label>
                             <input type="password" id="nuevoPassword" required placeholder="Mínimo 6 caracteres"
-                                class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Rol</label>
-                            <select id="nuevoRol" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            <select id="nuevoRol" class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                                 <option value="paciente">🧑 Paciente</option>
                                 <option value="doctor">👨‍⚕️ Doctor</option>
                                 <option value="admin">🛡️ Administrador</option>
                             </select>
                         </div>
-                        <div id="mensajeRegistro" class="hidden text-sm rounded p-2"></div>
+                        <div id="mensajeRegistro" class="hidden text-sm rounded-lg p-2"></div>
                         <button type="submit" id="btnCrearUsuario"
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-bold transition mt-2">
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold transition mt-2">
                             <i class="fas fa-plus mr-1"></i> Crear Usuario
                         </button>
                     </form>
                 </div>
                 <div class="flex-1 flex flex-col overflow-hidden">
-                    <div class="p-4 border-b flex items-center justify-between shrink-0">
+                    <div class="p-4 border-b flex items-center justify-between shrink-0 bg-slate-50/50">
                         <h4 class="font-bold text-slate-700 flex items-center gap-2">
                             <i class="fas fa-list text-purple-600"></i> Usuarios del Sistema
                         </h4>
-                        <button onclick="cargarUsuarios()" class="text-sm text-purple-600 hover:underline">
+                        <button onclick="cargarUsuarios()" class="text-sm text-purple-600 hover:underline font-medium">
                             <i class="fas fa-sync-alt mr-1"></i> Actualizar
                         </button>
                     </div>
-                    <div class="px-4 py-2 border-b flex gap-2 shrink-0 flex-wrap">
+                    <div class="px-4 py-2 border-b flex gap-2 shrink-0 flex-wrap bg-slate-50/30">
                         <button onclick="filtrarUsuariosPorRol('todos')" id="filtroTodos"
                             class="filtro-rol-btn bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">Todos</button>
                         <button onclick="filtrarUsuariosPorRol('admin')" id="filtroAdmin"
-                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">🛡️ Admins</button>
+                            class="filtro-rol-btn bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-300">🛡️ Admins</button>
                         <button onclick="filtrarUsuariosPorRol('doctor')" id="filtroDoctor"
-                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">👨‍⚕️ Doctores</button>
+                            class="filtro-rol-btn bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-300">👨‍⚕️ Doctores</button>
                         <button onclick="filtrarUsuariosPorRol('paciente')" id="filtroPaciente"
-                            class="filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200">🧑 Pacientes</button>
+                            class="filtro-rol-btn bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-300">🧑 Pacientes</button>
                     </div>
                     <div id="listaUsuarios" class="overflow-y-auto flex-1 p-4">
                         <p class="text-slate-400 text-sm text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando usuarios...</p>
@@ -167,61 +614,53 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: REPORTES DEL SISTEMA (NUEVO) ===================== -->
-    <div id="modalReportes" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex justify-center items-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div class="bg-slate-800 p-4 text-white flex justify-between items-center shrink-0">
+    <!-- ===== MODAL: REPORTES DEL SISTEMA ===== -->
+    <div id="modalReportes" class="hidden fixed inset-0 modal-overlay flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden modal-content">
+            <div class="bg-gradient-to-r from-slate-700 to-slate-800 p-4 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-lg"><i class="fas fa-chart-line mr-2"></i>Reportes del Sistema</h3>
                 <div class="flex items-center gap-2">
-                    <button onclick="exportarReporteCSV()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded text-sm font-bold transition">
+                    <button onclick="exportarReporteCSV()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-sm font-bold transition">
                         <i class="fas fa-file-csv mr-1"></i> Exportar CSV
                     </button>
                     <button onclick="cerrarModalReportes()" class="hover:text-slate-300 transition ml-2"><i class="fas fa-times text-xl"></i></button>
                 </div>
             </div>
-
             <div class="overflow-y-auto flex-1 p-6 bg-slate-50">
-
                 <!-- Tarjetas resumen -->
                 <div id="tarjetasResumen" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
                         <p class="text-xs text-slate-500 font-semibold uppercase">Total de Citas</p>
                         <p id="repTotalCitas" class="text-3xl font-bold text-slate-800 mt-1">--</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-emerald-500">
+                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
                         <p class="text-xs text-slate-500 font-semibold uppercase">Validadas / Realizadas</p>
                         <p id="repCitasOk" class="text-3xl font-bold text-slate-800 mt-1">--</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-yellow-500">
                         <p class="text-xs text-slate-500 font-semibold uppercase">Pendientes</p>
                         <p id="repCitasPendientes" class="text-3xl font-bold text-slate-800 mt-1">--</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-red-500">
                         <p class="text-xs text-slate-500 font-semibold uppercase">Canceladas</p>
                         <p id="repCitasCanceladas" class="text-3xl font-bold text-slate-800 mt-1">--</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Gráfico: Citas por Estado -->
-                    <div class="bg-white rounded-lg shadow p-5">
+                    <div class="bg-white rounded-xl shadow p-5">
                         <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
                             <i class="fas fa-chart-pie text-blue-600"></i> Citas por Estado
                         </h4>
                         <div id="graficoEstados" class="space-y-3"></div>
                     </div>
-
-                    <!-- Gráfico: Citas por Doctor -->
-                    <div class="bg-white rounded-lg shadow p-5">
+                    <div class="bg-white rounded-xl shadow p-5">
                         <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
                             <i class="fas fa-user-md text-indigo-600"></i> Carga de Citas por Doctor
                         </h4>
                         <div id="graficoDoctores" class="space-y-3"></div>
                     </div>
                 </div>
-
-                <!-- Tabla: Ranking de pacientes frecuentes -->
-                <div class="bg-white rounded-lg shadow p-5 mt-6">
+                <div class="bg-white rounded-xl shadow p-5 mt-6">
                     <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <i class="fas fa-users text-purple-600"></i> Pacientes con más Citas
                     </h4>
@@ -229,110 +668,112 @@
                         <p class="text-slate-400 text-sm text-center py-4">Cargando...</p>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- ===================== MODAL: NUEVA CITA ===================== -->
-    <div id="modalNuevaCita" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
+    <!-- ===== MODAL: NUEVA CITA ===== -->
+    <div id="modalNuevaCita" class="hidden fixed inset-0 modal-overlay flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden modal-content">
+            <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-calendar-plus mr-2"></i>Solicitar Nueva Cita</h3>
                 <button onclick="cerrarModalNuevaCita()" class="hover:text-emerald-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
             <form id="formNuevaCita" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Paciente</label>
-                    <input type="text" id="citaPaciente" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
+                    <input type="text" id="citaPaciente" readonly class="w-full p-2.5 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Especialista y Horario Disponible</label>
-                    <select id="citaHorario" required class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
+                    <select id="citaHorario" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer bg-white">
                         <option value="">Cargando horarios...</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Motivo de la Consulta</label>
-                    <textarea id="citaMotivo" required rows="3" placeholder="Describe brevemente tus síntomas o motivo de visita..." class="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                    <textarea id="citaMotivo" required rows="3" placeholder="Describe brevemente tus síntomas o motivo de visita..." class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
-                    <button type="button" onclick="cerrarModalNuevaCita()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded font-semibold shadow-md transition">Confirmar Cita</button>
+                    <button type="button" onclick="cerrarModalNuevaCita()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl font-semibold shadow-md transition">Confirmar Cita</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ===================== MODAL: CAMBIAR CONTRASEÑA ===================== -->
-    <div id="modalCambiarPassword" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div class="bg-yellow-500 p-4 text-white flex justify-between items-center">
+    <!-- ===== MODAL: CAMBIAR CONTRASEÑA ===== -->
+    <div id="modalCambiarPassword" class="hidden fixed inset-0 modal-overlay flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden modal-content">
+            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-key mr-2"></i>Cambiar Contraseña</h3>
                 <button onclick="cerrarModalPassword()" class="hover:text-yellow-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
             <form id="formCambiarPassword" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual (La que llegó al correo)</label>
-                    <input type="password" id="passActual" required class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual</label>
+                    <input type="password" id="passActual" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña</label>
-                    <input type="password" id="passNuevo" required minlength="8" class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                    <input type="password" id="passNuevo" required minlength="8" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
-                    <input type="password" id="passConfirmar" required minlength="8" class="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none">
+                    <input type="password" id="passConfirmar" required minlength="8" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none">
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
-                    <button type="button" onclick="cerrarModalPassword()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-white bg-yellow-500 hover:bg-yellow-600 rounded font-semibold shadow-md transition">Actualizar</button>
+                    <button type="button" onclick="cerrarModalPassword()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-yellow-500 hover:bg-yellow-600 rounded-xl font-semibold shadow-md transition">Actualizar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ===================== MODAL: NUEVO HORARIO DOCTOR ===================== -->
-    <div id="modalNuevoHorario" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+    <!-- ===== MODAL: NUEVO HORARIO DOCTOR ===== -->
+    <div id="modalNuevoHorario" class="hidden fixed inset-0 modal-overlay flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-content">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-calendar-day mr-2"></i>Generar Jornada Laboral</h3>
                 <button onclick="cerrarModalNuevoHorario()" class="hover:text-indigo-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
             <form id="formNuevoHorario" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Doctor Especialista</label>
-                    <input type="text" id="horarioDoctor" readonly class="w-full p-2 border rounded bg-slate-100 text-slate-500 cursor-not-allowed outline-none">
+                    <input type="text" id="horarioDoctor" readonly class="w-full p-2.5 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la Jornada</label>
-                    <input type="date" id="horarioSoloFecha" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="date" id="horarioSoloFecha" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Inicio (Entrada)</label>
-                        <input type="time" id="horarioInicio" value="08:00" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Inicio</label>
+                        <input type="time" id="horarioInicio" value="08:00" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Fin (Salida)</label>
-                        <input type="time" id="horarioFin" value="16:00" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hora Fin</label>
+                        <input type="time" id="horarioFin" value="16:00" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Duración de cada Consulta</label>
-                    <select id="horarioIntervalo" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <select id="horarioIntervalo" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
                         <option value="30">30 minutos</option>
                         <option value="60" selected>1 hora</option>
                     </select>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
-                    <button type="button" onclick="cerrarModalNuevoHorario()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded font-semibold shadow-md transition">Generar Turnos</button>
+                    <button type="button" onclick="cerrarModalNuevoHorario()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl font-semibold shadow-md transition">Generar Turnos</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- ===== JAVASCRIPT (COMPLETAMENTE SIN MODIFICAR) ===== -->
+    <!-- ============================================================ -->
     <script>
         const API_URL = "http://localhost:8000";
 
@@ -351,22 +792,22 @@
                 if (userData.rol === 'paciente') {
                     subtitulo.innerText = "Historial de mis citas médicas";
                     contenedorBotones.innerHTML = `
-                        <button onclick="abrirModalNuevaCita()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalNuevaCita()" class="btn-role btn-role-success">
                             <i class="fas fa-plus mr-2"></i> Solicitar Nueva Cita
                         </button>`;
                 } else if (userData.rol === 'doctor') {
                     subtitulo.innerText = "Bandeja de atención a pacientes";
                     contenedorBotones.innerHTML = `
-                        <button onclick="abrirModalNuevoHorario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalNuevoHorario()" class="btn-role btn-role-indigo">
                             <i class="fas fa-calendar-alt mr-2"></i> Publicar Horario / Turno
                         </button>`;
                 } else if (userData.rol === 'admin') {
                     subtitulo.innerText = "Centro de Control General y Auditoría";
                     contenedorBotones.innerHTML = `
-                        <button onclick="abrirModalUsuarios()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalUsuarios()" class="btn-role btn-role-purple">
                             <i class="fas fa-users-cog mr-2"></i> Gestión de Usuarios
                         </button>
-                        <button onclick="abrirModalReportes()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalReportes()" class="btn-role btn-role-primary">
                             <i class="fas fa-chart-line mr-2"></i> Reportes del Sistema
                         </button>`;
                 }
@@ -422,29 +863,29 @@
             }
 
             citasFiltradas.forEach(cita => {
-                let colorEstado = 'bg-yellow-200 text-yellow-800';
-                if(cita.estado === 'Realizada' || cita.estado === 'Validada') colorEstado = 'bg-green-200 text-green-800';
-                if(cita.estado === 'Cancelada') colorEstado = 'bg-red-200 text-red-800';
+                let badgeClass = 'badge-pendiente';
+                if(cita.estado === 'Realizada' || cita.estado === 'Validada') badgeClass = 'badge-realizada';
+                if(cita.estado === 'Cancelada') badgeClass = 'badge-cancelada';
 
                 let botonesAccion = '';
                 if (rolUsuario === 'admin') {
-                    if (cita.estado !== 'Cancelada') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
-                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="text-emerald-500 hover:text-emerald-700 mx-1 font-bold" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
+                    if (cita.estado !== 'Cancelada') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="btn-action btn-action-danger" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
+                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="btn-action btn-action-success ml-1" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
                 } else if (rolUsuario === 'doctor') {
-                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="text-blue-500 hover:text-blue-700 mx-1 font-bold" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
+                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="btn-action btn-action-primary" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
                 } else if (rolUsuario === 'paciente') {
-                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="text-red-500 hover:text-red-700 mx-1 font-bold" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
+                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="btn-action btn-action-danger" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
                 }
-                if (botonesAccion === '') botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones disponibles</span>';
+                if (botonesAccion === '') botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones</span>';
 
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-200 hover:bg-slate-50">
-                        <td class="py-3 px-6 font-bold text-blue-600">#${cita.id}</td>
-                        <td class="py-3 px-6">${cita.paciente}</td>
-                        <td class="py-3 px-6 text-slate-500"><i class="fas fa-user-md mr-1"></i>${cita.doctor}</td>
-                        <td class="py-3 px-6">${cita.fecha}</td>
-                        <td class="py-3 px-6"><span class="${colorEstado} py-1 px-3 rounded-full text-xs font-semibold">${cita.estado}</span></td>
-                        <td class="py-3 px-6 text-center">${botonesAccion}</td>
+                    <tr>
+                        <td class="font-bold text-blue-600">#${cita.id}</td>
+                        <td>${cita.paciente}</td>
+                        <td><i class="fas fa-user-md mr-1 text-slate-400"></i>${cita.doctor}</td>
+                        <td>${cita.fecha}</td>
+                        <td><span class="badge ${badgeClass}">${cita.estado}</span></td>
+                        <td class="text-center">${botonesAccion}</td>
                     </tr>`;
             });
         }
@@ -513,7 +954,7 @@
             ];
             const lista = document.getElementById('listaUsuarios');
             lista.innerHTML = `
-                <div id="avisoDemo" class="mb-3 bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
+                <div id="avisoDemo" class="mb-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
                     <i class="fas fa-info-circle mr-1"></i>
                     Mostrando usuarios de demo. Los usuarios que crees sí se guardan en la base de datos.
                 </div>`;
@@ -546,7 +987,7 @@
                 const color = coloresRol[u.rol] || 'bg-slate-100 text-slate-700';
                 const icono = iconosRol[u.rol] || 'fa-user';
                 const card = document.createElement('div');
-                card.className = 'flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 transition';
+                card.className = 'flex items-center gap-3 p-3 border rounded-xl hover:bg-slate-50 transition';
                 card.innerHTML = `
                     <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0">
                         <i class="fas ${icono}"></i>
@@ -562,7 +1003,7 @@
             lista.appendChild(grid);
 
             document.querySelectorAll('.filtro-rol-btn').forEach(btn => {
-                btn.className = 'filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200';
+                btn.className = 'filtro-rol-btn bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-300';
             });
             const idBtn = 'filtro' + filtroRolActivo.charAt(0).toUpperCase() + filtroRolActivo.slice(1);
             const btnActivo = document.getElementById(idBtn) || document.getElementById('filtroTodos');
@@ -635,7 +1076,7 @@
         };
 
         // ==========================================
-        // MÓDULO REPORTES DEL SISTEMA (ADMIN) — NUEVO
+        // MÓDULO REPORTES DEL SISTEMA (ADMIN)
         // ==========================================
         async function abrirModalReportes() {
             document.getElementById('modalReportes').classList.remove('hidden');
@@ -654,7 +1095,6 @@
                 const citas = data.citas;
                 citasCacheadas = citas;
 
-                // --- Tarjetas resumen ---
                 const total = citas.length;
                 const ok = citas.filter(c => c.estado === 'Validada' || c.estado === 'Realizada').length;
                 const pendientes = citas.filter(c => c.estado === 'Pendiente').length;
@@ -665,7 +1105,6 @@
                 document.getElementById('repCitasPendientes').innerText = pendientes;
                 document.getElementById('repCitasCanceladas').innerText = canceladas;
 
-                // --- Gráfico por estado ---
                 const conteoEstados = {};
                 citas.forEach(c => { conteoEstados[c.estado] = (conteoEstados[c.estado] || 0) + 1; });
                 const coloresEstado = {
@@ -695,7 +1134,6 @@
                     });
                 }
 
-                // --- Gráfico por doctor ---
                 const conteoDoctores = {};
                 citas.forEach(c => { conteoDoctores[c.doctor] = (conteoDoctores[c.doctor] || 0) + 1; });
                 const maxDoctor = Math.max(1, ...Object.values(conteoDoctores));
@@ -719,7 +1157,6 @@
                     });
                 }
 
-                // --- Tabla de pacientes frecuentes ---
                 const conteoPacientes = {};
                 citas.forEach(c => { conteoPacientes[c.paciente] = (conteoPacientes[c.paciente] || 0) + 1; });
                 const rankingPacientes = Object.entries(conteoPacientes).sort((a,b) => b[1]-a[1]).slice(0, 10);
@@ -923,8 +1360,5 @@
 
     </script>
 
-    <footer class="mt-8 text-center text-slate-400 text-sm border-t pt-4">
-        &copy; 2026 HealthSync Hospital. Desarrollado por mi codigo no corre.
-    </footer>
 </body>
 </html>
