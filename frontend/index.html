@@ -237,6 +237,86 @@
             transform: scale(1.05);
         }
 
+        /* ===== MENSAJES ===== */
+        .message-box {
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            display: none;
+            word-break: break-word;
+        }
+        .message-box.show {
+            display: block;
+        }
+        .message-box-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .message-box-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+        .confirm-overlay.hidden {
+            display: none;
+        }
+        .confirm-box {
+            width: min(90%, 420px);
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+        }
+        .confirm-box h3 {
+            margin-bottom: 0.75rem;
+            font-size: 1.05rem;
+            color: #0f172a;
+        }
+        .confirm-box p {
+            margin-bottom: 1.25rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .confirm-actions button {
+            min-width: 120px;
+            padding: 0.75rem 1rem;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.15s ease;
+        }
+        .confirm-actions button:hover {
+            transform: translateY(-1px);
+        }
+        .confirm-cancel {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .confirm-accept {
+            background: #10b981;
+            color: white;
+        }
+
         /* ===== FILTROS ===== */
         .filter-section {
             background: white;
@@ -587,6 +667,19 @@
             <button onclick="cargarCitas()" class="btn-filter">
                 <i class="fas fa-sync-alt mr-1"></i> Filtrar
             </button>
+        </div>
+
+        <div id="mensajeCitas" class="message-box" role="status" aria-live="polite"></div>
+
+        <div id="confirmacionCita" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmacionTitulo">
+            <div class="confirm-box">
+                <h3 id="confirmacionTitulo">Confirmar acción</h3>
+                <p id="confirmacionTexto">¿Deseas continuar?</p>
+                <div class="confirm-actions">
+                    <button type="button" class="confirm-cancel" onclick="cancelarConfirmacionCita()">Cancelar</button>
+                    <button type="button" class="confirm-accept" onclick="confirmarCambioEstadoCita()">Sí, continuar</button>
+                </div>
+            </div>
         </div>
 
         <!-- Tabla de citas -->
@@ -962,10 +1055,10 @@
 
                 let botonesAccion = '';
                 if (rolUsuario === 'admin') {
-                    if (cita.estado !== 'Cancelada') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="btn-action btn-action-danger" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
-                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="btn-action btn-action-success ml-1" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
+                    if (cita.estado !== 'Cancelada') botonesAccion += `<button onclick="solicitarConfirmacionCita(${cita.id}, 'Cancelada')" class="btn-action btn-action-danger" title="Cancelar Cita"><i class="fas fa-trash"></i></button>`;
+                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="solicitarConfirmacionCita(${cita.id}, 'Validada')" class="btn-action btn-action-success ml-1" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
                 } else if (rolUsuario === 'doctor') {
-                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="btn-action btn-action-primary" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
+                    if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="solicitarConfirmacionCita(${cita.id}, 'Realizada')" class="btn-action btn-action-primary" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
                 }
                 // El paciente ya no tiene ninguna acción disponible sobre sus citas.
                 if (botonesAccion === '') botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones</span>';
@@ -982,9 +1075,30 @@
             });
         }
 
+        function solicitarConfirmacionCita(idCita, nuevoEstado) {
+            const overlay = document.getElementById('confirmacionCita');
+            overlay.dataset.idCita = idCita;
+            overlay.dataset.nuevoEstado = nuevoEstado;
+            document.getElementById('confirmacionTexto').innerText = `¿Está seguro de que desea marcar la cita #${idCita} como "${nuevoEstado}"?`;
+            overlay.classList.remove('hidden');
+        }
+
+        function cancelarConfirmacionCita() {
+            document.getElementById('confirmacionCita').classList.add('hidden');
+            document.getElementById('confirmacionCita').removeAttribute('data-id-cita');
+            document.getElementById('confirmacionCita').removeAttribute('data-nuevo-estado');
+        }
+
+        async function confirmarCambioEstadoCita() {
+            const overlay = document.getElementById('confirmacionCita');
+            const idCita = overlay.dataset.idCita;
+            const nuevoEstado = overlay.dataset.nuevoEstado;
+            cancelarConfirmacionCita();
+            if (!idCita || !nuevoEstado) return;
+            await cambiarEstadoCita(idCita, nuevoEstado);
+        }
+
         async function cambiarEstadoCita(idCita, nuevoEstado) {
-            const confirmacion = confirm(`¿Está seguro de que desea marcar la cita #${idCita} como "${nuevoEstado}"?`);
-            if (!confirmacion) return;
             try {
                 const res = await fetch(`${API_URL}/citas/${idCita}/estado`, {
                     method: 'PUT',
@@ -992,15 +1106,28 @@
                     body: JSON.stringify({ estado: nuevoEstado })
                 });
                 if(res.ok) {
-                    alert(`✅ Acción exitosa: La cita #${idCita} ahora está ${nuevoEstado}.`);
+                    mostrarMensajeCitas(`✅ Acción exitosa: La cita #${idCita} ahora está ${nuevoEstado}.`, 'success');
                     cargarCitas();
                 } else {
                     const err = await res.json();
-                    alert(`Error al actualizar la cita: ${err.detail}`);
+                    mostrarMensajeCitas(`❌ Error al actualizar la cita: ${err.detail}`, 'error');
                 }
             } catch(error) {
-                alert("Error de conexión con el servidor.");
+                mostrarMensajeCitas('❌ Error de conexión con el servidor.', 'error');
             }
+        }
+
+        function mostrarMensajeCitas(texto, tipo) {
+            const div = document.getElementById('mensajeCitas');
+            div.classList.remove('message-box-success', 'message-box-error', 'show');
+            div.classList.add(tipo === 'success' ? 'message-box-success' : 'message-box-error', 'show');
+            div.innerText = texto;
+        }
+
+        function ocultarMensajeCitas() {
+            const div = document.getElementById('mensajeCitas');
+            div.classList.remove('show');
+            div.innerText = '';
         }
 
         // ==========================================
