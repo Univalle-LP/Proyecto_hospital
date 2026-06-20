@@ -185,6 +185,27 @@
             margin-top: 2rem;
         }
 
+        /* Mensaje de error */
+        .error-message {
+            display: none;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .error-message.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* responsive */
         @media (max-width: 480px) {
             .card-login {
@@ -238,6 +259,8 @@
 
             <!-- formulario -->
             <form id="loginForm" class="space-y-5">
+                <!-- Mensaje de error -->
+                <div id="errorMessage" class="error-message"></div>
 
                 <!-- usuario -->
                 <div>
@@ -317,9 +340,23 @@
             }
         }
 
+        // Función para mostrar error
+        function mostrarError(mensaje) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = mensaje;
+            errorDiv.classList.add('show');
+        }
+
+        // Función para limpiar error
+        function limpiarError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.remove('show');
+        }
+
         // Proceso de Autenticación y Manejo de Tokens
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
+            limpiarError();
             const usr = document.getElementById('loginUsuario').value;
             const pwd = document.getElementById('loginPassword').value;
             const boton = document.getElementById('btnLogin');
@@ -342,11 +379,10 @@
                     localStorage.setItem('healthsync_user', JSON.stringify(data.usuario));
                     window.location.href = 'index.html'; 
                 } else {
-                    const err = await res.json();
-                    alert(`Error de autenticación: ${err.detail}`);
+                    mostrarError('Usuario o contraseña incorrectos');
                 }
             } catch(err) {
-                alert("Error de infraestructura. Verifica que los microservicios estén encendidos.");
+                mostrarError('No se puede conectar con el servidor');
             } finally {
                 boton.innerHTML = textoOriginal;
                 boton.disabled = false;
