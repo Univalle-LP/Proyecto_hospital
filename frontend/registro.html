@@ -2,54 +2,340 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro de Usuario - HealthSync Hospital</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario · HealthSync</title>
+    <!-- Tailwind + Font Awesome (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Estilos coherentes con las otras páginas -->
+    <style>
+        body {
+            background: #000000; /* fondo negro puro */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        /* Tarjeta con estética neutra y elegante sobre fondo negro */
+        .card-registro {
+            background: #fcfcfd;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            max-width: 520px;
+        }
+        .card-registro:hover {
+            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.7);
+            transform: translateY(-2px);
+        }
+
+        /* Inputs con estilo neutro */
+        .input-neutral {
+            background: #f5f6f8;
+            border: 1px solid #d5d8de;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+            color: #2c313a;
+            font-weight: 450;
+            font-size: 0.95rem;
+        }
+        .input-neutral:focus {
+            outline: none;
+            border-color: #b0b8c4;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(176, 184, 196, 0.15);
+        }
+        .input-neutral::placeholder {
+            color: #a8b2c0;
+            font-weight: 350;
+        }
+
+        /* Botón primario neutro */
+        .btn-primary {
+            background: #2d3748;
+            color: white;
+            font-weight: 600;
+            padding: 0.9rem;
+            border-radius: 40px;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(45, 55, 72, 0.2);
+            letter-spacing: 0.3px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-primary:hover {
+            background: #1a202c;
+            box-shadow: 0 8px 20px rgba(45, 55, 72, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Botón secundario para el registro (verde neutro) */
+        .btn-secondary {
+            background: #3d7a5a;
+            color: white;
+            font-weight: 600;
+            padding: 0.9rem;
+            border-radius: 40px;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(61, 122, 90, 0.2);
+            letter-spacing: 0.3px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-secondary:hover {
+            background: #2d5f45;
+            box-shadow: 0 8px 20px rgba(61, 122, 90, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+        .btn-secondary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Enlaces */
+        .link-neutral {
+            color: #5a6475;
+            transition: color 0.15s;
+            font-weight: 450;
+            text-decoration: none;
+        }
+        .link-neutral:hover {
+            color: #2c313a;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        /* Icono de usuario */
+        .icon-circle {
+            background: #eef0f3;
+            color: #2d3748;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1rem;
+            transition: all 0.2s;
+        }
+        .icon-circle:hover {
+            background: #e2e6ed;
+            transform: scale(1.02);
+        }
+
+        /* Footer sutil */
+        .footer-note {
+            color: #9aa4b8;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* separador */
+        .divider-neutral {
+            border: 0;
+            border-top: 1px solid #e9ecf2;
+            margin: 1.8rem 0 1rem;
+        }
+
+        /* etiquetas */
+        .label-neutral {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #3d4757;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.2px;
+        }
+
+        .brand-icon {
+            color: #2d3748;
+            opacity: 0.7;
+        }
+        .brand-title {
+            color: #1a202c;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .brand-sub {
+            color: #6b7689;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* Copyright sobre fondo negro */
+        .copyright {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        /* Mensaje de ayuda */
+        .help-text {
+            color: #9aa4b8;
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Grid responsive */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* responsive */
+        @media (max-width: 480px) {
+            .card-registro {
+                border-radius: 1.5rem;
+                padding: 1.8rem 1.2rem;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans flex justify-center items-center min-h-screen py-10">
+<body>
 
-    <section class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-blue-700 mb-2">Registro de Usuario</h1>
-            <p class="text-sm text-slate-500">Únete a la red de HealthSync Hospital</p>
+    <div class="w-full max-w-lg px-4">
+        <!-- Tarjeta principal -->
+        <div class="card-registro p-8 md:p-10">
+
+            <!-- encabezado -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-1">
+                    <i class="fas fa-heartbeat text-2xl brand-icon"></i>
+                    <span class="text-2xl font-bold brand-title">HealthSync</span>
+                </div>
+                <span class="text-sm font-medium brand-sub tracking-wide">Hospital · Sistema seguro</span>
+                <div class="mt-4 h-0.5 w-12 mx-auto bg-slate-200 rounded-full"></div>
+                
+                <!-- Icono de registro -->
+                <div class="icon-circle mt-4">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-slate-700 mt-2">Registro de Usuario</h2>
+                <p class="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+                    Únete a la red de HealthSync Hospital
+                </p>
+            </div>
+
+            <!-- formulario -->
+            <form id="registroForm" class="space-y-4">
+
+                <!-- Nombre completo -->
+                <div>
+                    <label for="regNombre" class="label-neutral">
+                        <i class="far fa-user mr-1.5 text-slate-400"></i> Nombre Completo
+                    </label>
+                    <input id="regNombre" type="text" required 
+                           class="input-neutral" 
+                           placeholder="Ej. Juan Gabriel Rada Escobar" 
+                           autocomplete="name">
+                </div>
+
+                <!-- Grid: Usuario + Correo -->
+                <div class="grid-2">
+                    <div>
+                        <label for="regUser" class="label-neutral">
+                            <i class="far fa-id-card mr-1.5 text-slate-400"></i> Usuario
+                        </label>
+                        <input id="regUser" type="text" required 
+                               class="input-neutral" 
+                               placeholder="usuario123" 
+                               autocomplete="username">
+                    </div>
+                    <div>
+                        <label for="regCorreo" class="label-neutral">
+                            <i class="far fa-envelope mr-1.5 text-slate-400"></i> Correo
+                        </label>
+                        <input id="regCorreo" type="email" required 
+                               class="input-neutral" 
+                               placeholder="correo@ejemplo.com" 
+                               autocomplete="email">
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div>
+                    <label for="regPassword" class="label-neutral">
+                        <i class="fas fa-lock mr-1.5 text-slate-400"></i> Contraseña
+                    </label>
+                    <input id="regPassword" type="password" required minlength="8" 
+                           class="input-neutral" 
+                           placeholder="••••••••" 
+                           autocomplete="new-password">
+                    <p class="help-text">
+                        <i class="fas fa-info-circle mr-1"></i> Debe tener al menos 8 caracteres.
+                    </p>
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div>
+                    <label for="regConfirm" class="label-neutral">
+                        <i class="fas fa-check-circle mr-1.5 text-slate-400"></i> Confirmar Contraseña
+                    </label>
+                    <input id="regConfirm" type="password" required 
+                           class="input-neutral" 
+                           placeholder="••••••••" 
+                           autocomplete="new-password">
+                </div>
+
+                <!-- botón de registro -->
+                <button type="submit" id="btnRegistro" class="btn-secondary mt-2">
+                    <i class="fas fa-user-plus mr-2"></i> Crear Cuenta
+                </button>
+            </form>
+
+            <!-- separador + volver -->
+            <hr class="divider-neutral">
+            <div class="text-center text-sm text-slate-500">
+                ¿Ya tienes una cuenta? 
+                <a href="inicio-sesion.html" class="font-semibold link-neutral">
+                    Inicia Sesión <i class="fas fa-arrow-right text-xs ml-1"></i>
+                </a>
+            </div>
+
+            <!-- pequeño footer dentro de la tarjeta -->
+            <div class="mt-6 text-center footer-note">
+                <i class="fas fa-shield-alt mr-1"></i> Acceso seguro · autenticación con token
+            </div>
         </div>
 
-        <form id="registroForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-                <input id="regNombre" type="text" required placeholder="Ej. Juan Gabriel Rada Escobar" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nombre de Usuario</label>
-                    <input id="regUser" type="text" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                    <input id="regCorreo" type="email" required placeholder="correo@ejemplo.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-                <input id="regPassword" type="password" required minlength="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <p class="text-xs text-slate-400 mt-1">Debe tener al menos 8 caracteres.</p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar Contraseña</label>
-                <input id="regConfirm" type="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-
-            <button type="submit" class="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold hover:bg-emerald-700 transition shadow-lg mt-4">Crear Cuenta</button>
-        </form>
-
-        <div class="mt-6 text-center text-sm text-slate-600 border-t pt-4">
-            ¿Ya tienes una cuenta? <a href="inicio-sesion.html" class="text-blue-600 hover:underline font-semibold">Inicia Sesión</a>
+        <!-- copyright fuera de la tarjeta (sobre fondo negro) -->
+        <div class="copyright">
+            &copy; 2026 HealthSync Hospital · Sistema Seguro
         </div>
-    </section>
+    </div>
 
+    <!-- ====== JAVASCRIPT (MEJORADO CON ESTILO NEUTRO) ====== -->
     <script>
         const API_URL = "http://localhost:8000";
 
@@ -58,19 +344,37 @@
             
             const pwd = document.getElementById('regPassword').value;
             const confirmPwd = document.getElementById('regConfirm').value;
+            const boton = document.getElementById('btnRegistro');
 
+            // Validar contraseñas
             if (pwd !== confirmPwd) {
-                alert("Las contraseñas no coinciden. Por favor, verifica.");
+                alert("⚠️ Las contraseñas no coinciden. Por favor, verifica.");
+                return;
+            }
+
+            if (pwd.length < 8) {
+                alert("⚠️ La contraseña debe tener al menos 8 caracteres.");
                 return;
             }
 
             const data = {
-                nombre_completo: document.getElementById('regNombre').value,
-                usuario: document.getElementById('regUser').value,
-                correo: document.getElementById('regCorreo').value,
+                nombre_completo: document.getElementById('regNombre').value.trim(),
+                usuario: document.getElementById('regUser').value.trim(),
+                correo: document.getElementById('regCorreo').value.trim(),
                 password: pwd,
                 rol: "paciente" // Por defecto, los registros externos son pacientes
             };
+
+            // Validar campos vacíos
+            if (!data.nombre_completo || !data.usuario || !data.correo) {
+                alert("⚠️ Todos los campos son obligatorios.");
+                return;
+            }
+
+            // Efecto visual de carga
+            const textoOriginal = boton.innerHTML;
+            boton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creando cuenta...';
+            boton.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/registro`, {
@@ -80,16 +384,21 @@
                 });
 
                 if(res.ok) {
-                    alert("¡Registro exitoso! Ya puedes iniciar sesión.");
+                    alert("✅ ¡Registro exitoso! Ya puedes iniciar sesión.");
                     window.location.href = 'inicio-sesion.html';
                 } else {
                     const err = await res.json();
-                    alert(`Error: ${err.detail}`);
+                    alert(`❌ Error: ${err.detail || 'No se pudo completar el registro.'}`);
                 }
             } catch(err) {
-                alert("Error de conexión con el servidor.");
+                alert("❌ Error de conexión con el servidor. Verifica que el microservicio esté encendido.");
+            } finally {
+                // Restauramos el botón si algo falla
+                boton.innerHTML = textoOriginal;
+                boton.disabled = false;
             }
         };
     </script>
+
 </body>
 </html>
