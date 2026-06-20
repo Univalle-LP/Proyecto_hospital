@@ -241,6 +241,21 @@ def registrar_usuario(datos: RegistroData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
+@app.get("/usuarios")
+def obtener_usuarios():
+    try:
+        conexion = mysql.connector.connect(**db_config)
+        cursor = conexion.cursor(dictionary=True)
+        # No seleccionamos la columna password por seguridad: nunca debe salir
+        # de la base de datos, ni siquiera en forma de hash.
+        cursor.execute("SELECT id, usuario, rol, nombre_completo, correo FROM usuarios ORDER BY id ASC")
+        datos = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return {"status": "éxito", "usuarios": datos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/login")
 def login(datos: LoginData):
     # 1. Intentamos conectar a la BD primero
