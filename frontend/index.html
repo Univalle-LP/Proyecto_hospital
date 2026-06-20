@@ -493,9 +493,7 @@
                 <select id="filtroEstado">
                     <option value="todos">Todos los estados</option>
                     <option value="Pendiente">Pendiente</option>
-                    <option value="Reservado">Reservado</option>
                     <option value="Cancelada">Cancelada</option>
-                    <option value="Realizada">Realizada</option>
                     <option value="Validada">Validada</option>
                 </select>
             </div>
@@ -854,7 +852,15 @@
             const citasFiltradas = citas.filter(cita => {
                 const coincideTexto = cita.paciente.toLowerCase().includes(busqueda) || cita.doctor.toLowerCase().includes(busqueda);
                 const coincideEstado = filtro === 'todos' || cita.estado === filtro;
-                return coincideTexto && coincideEstado;
+                // Filtro por rol: el paciente solo ve sus propias citas, el doctor solo
+                // ve las citas en las que él es el doctor. El admin ve todas.
+                let coincideRol = true;
+                if (rolUsuario === 'paciente' && userData) {
+                    coincideRol = cita.paciente === userData.nombre_completo;
+                } else if (rolUsuario === 'doctor' && userData) {
+                    coincideRol = cita.doctor === userData.nombre_completo;
+                }
+                return coincideTexto && coincideEstado && coincideRol;
             });
 
             if(citasFiltradas.length === 0) {
@@ -873,9 +879,8 @@
                     if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Validada')" class="btn-action btn-action-success ml-1" title="Validar Cita"><i class="fas fa-check-circle"></i></button>`;
                 } else if (rolUsuario === 'doctor') {
                     if (cita.estado === 'Validada' || cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Realizada')" class="btn-action btn-action-primary" title="Marcar como Atendida"><i class="fas fa-notes-medical"></i></button>`;
-                } else if (rolUsuario === 'paciente') {
-                    if (cita.estado === 'Pendiente') botonesAccion += `<button onclick="cambiarEstadoCita(${cita.id}, 'Cancelada')" class="btn-action btn-action-danger" title="Cancelar mi Cita"><i class="fas fa-times-circle"></i></button>`;
                 }
+                // El paciente ya no tiene ninguna acción disponible sobre sus citas.
                 if (botonesAccion === '') botonesAccion = '<span class="text-slate-400 text-xs">Sin acciones</span>';
 
                 tbody.innerHTML += `
