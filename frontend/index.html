@@ -490,6 +490,48 @@
         }
     </script>
 
+    <!-- ===== NAV GUARD: evita navegar fuera de index desde la app ===== -->
+    <script>
+        (function navGuard() {
+            try {
+                const allowed = ['/', '/index.html'];
+                const origin = window.location.origin;
+
+                function isAllowedPath(pathname) {
+                    return allowed.includes(pathname);
+                }
+
+                // Interceptar clicks en enlaces dentro de la app
+                document.addEventListener('click', (e) => {
+                    const a = e.target.closest && e.target.closest('a');
+                    if (!a || !a.href) return;
+                    try {
+                        const url = new URL(a.href, origin);
+                        if (url.origin !== origin) return; // externo: permitir
+                        if (!isAllowedPath(url.pathname)) {
+                            e.preventDefault();
+                            // mantener al usuario en index sin recargar
+                            history.replaceState(null, '', '/');
+                        }
+                    } catch (err) { /* ignore */ }
+                }, true);
+
+                // Si el usuario usa back/forward o cambia hash, restaurar si no permitido
+                window.addEventListener('popstate', () => {
+                    if (!isAllowedPath(window.location.pathname)) {
+                        history.replaceState(null, '', '/');
+                    }
+                });
+
+                window.addEventListener('hashchange', () => {
+                    if (!isAllowedPath(window.location.pathname)) {
+                        history.replaceState(null, '', '/');
+                    }
+                });
+            } catch (e) { console.warn('navGuard error', e); }
+        })();
+    </script>
+
     <!-- ===== NAVBAR ===== -->
     <nav class="navbar">
         <div class="container mx-auto flex justify-between items-center">
