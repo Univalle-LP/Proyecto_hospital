@@ -437,6 +437,54 @@
 </head>
 <body>
 
+    <!-- ===== NORMALIZACIÓN / PROTECCIÓN DE URLS ===== -->
+    <script>
+        (function normalizeUrl() {
+            try {
+                const path = window.location.pathname;
+                if (!path || path === '/' || path === '/index.html') return;
+
+                // Intentos: 1) si falta .html -> probar con .html
+                // 2) si hay dígitos al final -> eliminar dígitos y probar con .html
+                // 3) si nada existe, redirigir a / (index)
+
+                const tryFetch = (p) => fetch(p, { method: 'HEAD' });
+
+                const attemptHtml = (p) => {
+                    const candidate = p.endsWith('.html') ? p : (p.endsWith('/') ? p + 'index.html' : p + '.html');
+                    return tryFetch(candidate).then(res => res.ok ? candidate : null).catch(() => null);
+                };
+
+                // Primero: probar añadiendo .html
+                attemptHtml(path).then(found => {
+                    if (found) {
+                        // Si la URL already apunta a ese recurso, reemplazamos la URL sin recargar historico
+                        if (window.location.pathname !== new URL(found, window.location.origin).pathname) {
+                            window.location.replace(found + window.location.search + window.location.hash);
+                        }
+                        return;
+                    }
+                    // Segundo: quitar dígitos finales y probar
+                    const stripped = path.replace(/\d+$/,'');
+                    if (stripped && stripped !== path) {
+                        attemptHtml(stripped).then(found2 => {
+                            if (found2) {
+                                window.location.replace(found2 + window.location.search + window.location.hash);
+                            } else {
+                                window.location.replace('/');
+                            }
+                        }).catch(() => window.location.replace('/'));
+                    } else {
+                        window.location.replace('/');
+                    }
+                }).catch(() => {
+                    // En caso de error de red, no forzar redirect para evitar bucles.
+                    console.warn('Normalización: no se pudo verificar la URL actual');
+                });
+            } catch (e) { console.error('Error en normalización de URL', e); }
+        })();
+    </script>
+
     <!-- ===== VERIFICACIÓN DE SESIÓN ===== -->
     <script>
         const token = localStorage.getItem('healthsync_token');

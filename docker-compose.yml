@@ -45,7 +45,8 @@ services:
     image: nginx:alpine
     container_name: hospital_frontend
     volumes:
-      - ./frontend:/usr/share/nginx/html
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "8080:80"
     restart: always
