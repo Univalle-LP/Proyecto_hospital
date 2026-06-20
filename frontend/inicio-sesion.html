@@ -7,10 +7,9 @@
     <!-- Tailwind + Font Awesome (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Estilos con fondo negro y elementos neutros -->
+    <!-- Estilos con fondo hospi.jpg -->
     <style>
         body {
-            background: #000000; /* fondo negro puro */
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -18,19 +17,44 @@
             justify-content: center;
             margin: 0;
             padding: 1rem;
+            /* Fondo con imagen hospi.jpg */
+            background-image: url('hospi.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
 
-        /* Tarjeta con estética neutra y elegante sobre fondo negro */
-        .card-login {
-            background: #fcfcfd;
-            border-radius: 2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        /* Capa de superposición oscura para mejorar legibilidad */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        /* Contenedor principal (por encima de la capa) */
+        .main-container {
+            position: relative;
+            z-index: 1;
             width: 100%;
             max-width: 440px;
         }
+
+        /* Tarjeta con estética neutra y elegante */
+        .card-login {
+            background: #fcfcfd;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
         .card-login:hover {
-            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.6);
             transform: translateY(-2px);
         }
 
@@ -152,9 +176,9 @@
             letter-spacing: 0.2px;
         }
 
-        /* Copyright sobre fondo negro */
+        /* Copyright sobre el fondo */
         .copyright {
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.4);
             font-size: 0.7rem;
             letter-spacing: 0.3px;
             text-align: center;
@@ -172,7 +196,7 @@
 </head>
 <body>
 
-    <div class="w-full max-w-md px-4">
+    <div class="main-container px-4">
         <!-- Tarjeta principal -->
         <div class="card-login p-8 md:p-10">
 
@@ -223,7 +247,7 @@
                 </div>
 
                 <!-- botón de acceso -->
-                <button type="submit" class="btn-primary mt-2">
+                <button type="submit" id="btnLogin" class="btn-primary mt-2">
                     <i class="fas fa-sign-in-alt mr-2"></i> Ingresar al sistema
                 </button>
             </form>
@@ -243,13 +267,13 @@
             </div>
         </div>
 
-        <!-- copyright fuera de la tarjeta (sobre fondo negro) -->
+        <!-- copyright fuera de la tarjeta -->
         <div class="copyright">
             &copy; 2026 HealthSync Hospital · Sistema Seguro
         </div>
     </div>
 
-    <!-- ====== JAVASCRIPT (NO TOCADO) ====== -->
+    <!-- ====== JAVASCRIPT ====== -->
     <script>
         const API_URL = "http://localhost:8000";
 
@@ -273,6 +297,12 @@
             e.preventDefault();
             const usr = document.getElementById('loginUsuario').value;
             const pwd = document.getElementById('loginPassword').value;
+            const boton = document.getElementById('btnLogin');
+
+            // Efecto visual de carga
+            const textoOriginal = boton.innerHTML;
+            boton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ingresando...';
+            boton.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/login`, {
@@ -292,6 +322,9 @@
                 }
             } catch(err) {
                 alert("Error de infraestructura. Verifica que los microservicios estén encendidos.");
+            } finally {
+                boton.innerHTML = textoOriginal;
+                boton.disabled = false;
             }
         };
     </script>
