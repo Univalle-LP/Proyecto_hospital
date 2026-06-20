@@ -92,7 +92,7 @@
 
     </main>
 
-    <!-- ===================== MODAL: GESTIÓN DE USUARIOS (NUEVO) ===================== -->
+    <!-- ===================== MODAL: GESTIÓN DE USUARIOS ===================== -->
     <div id="modalUsuarios" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex justify-center items-center z-50 p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-purple-700 p-4 text-white flex justify-between items-center shrink-0">
@@ -100,7 +100,6 @@
                 <button onclick="cerrarModalUsuarios()" class="hover:text-purple-200 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
             <div class="flex flex-col md:flex-row overflow-hidden flex-1">
-                <!-- Panel izquierdo: Crear usuario -->
                 <div class="w-full md:w-80 bg-slate-50 p-5 border-r shrink-0 overflow-y-auto">
                     <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <i class="fas fa-user-plus text-purple-600"></i> Crear Nuevo Usuario
@@ -141,7 +140,6 @@
                         </button>
                     </form>
                 </div>
-                <!-- Panel derecho: Lista de usuarios -->
                 <div class="flex-1 flex flex-col overflow-hidden">
                     <div class="p-4 border-b flex items-center justify-between shrink-0">
                         <h4 class="font-bold text-slate-700 flex items-center gap-2">
@@ -165,6 +163,73 @@
                         <p class="text-slate-400 text-sm text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando usuarios...</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL: REPORTES DEL SISTEMA (NUEVO) ===================== -->
+    <div id="modalReportes" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-800 p-4 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fas fa-chart-line mr-2"></i>Reportes del Sistema</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportarReporteCSV()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded text-sm font-bold transition">
+                        <i class="fas fa-file-csv mr-1"></i> Exportar CSV
+                    </button>
+                    <button onclick="cerrarModalReportes()" class="hover:text-slate-300 transition ml-2"><i class="fas fa-times text-xl"></i></button>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto flex-1 p-6 bg-slate-50">
+
+                <!-- Tarjetas resumen -->
+                <div id="tarjetasResumen" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                        <p class="text-xs text-slate-500 font-semibold uppercase">Total de Citas</p>
+                        <p id="repTotalCitas" class="text-3xl font-bold text-slate-800 mt-1">--</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-emerald-500">
+                        <p class="text-xs text-slate-500 font-semibold uppercase">Validadas / Realizadas</p>
+                        <p id="repCitasOk" class="text-3xl font-bold text-slate-800 mt-1">--</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+                        <p class="text-xs text-slate-500 font-semibold uppercase">Pendientes</p>
+                        <p id="repCitasPendientes" class="text-3xl font-bold text-slate-800 mt-1">--</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+                        <p class="text-xs text-slate-500 font-semibold uppercase">Canceladas</p>
+                        <p id="repCitasCanceladas" class="text-3xl font-bold text-slate-800 mt-1">--</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gráfico: Citas por Estado -->
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-blue-600"></i> Citas por Estado
+                        </h4>
+                        <div id="graficoEstados" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Gráfico: Citas por Doctor -->
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user-md text-indigo-600"></i> Carga de Citas por Doctor
+                        </h4>
+                        <div id="graficoDoctores" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- Tabla: Ranking de pacientes frecuentes -->
+                <div class="bg-white rounded-lg shadow p-5 mt-6">
+                    <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-users text-purple-600"></i> Pacientes con más Citas
+                    </h4>
+                    <div id="tablaPacientesFrecuentes" class="overflow-x-auto">
+                        <p class="text-slate-400 text-sm text-center py-4">Cargando...</p>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -301,7 +366,7 @@
                         <button onclick="abrirModalUsuarios()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-users-cog mr-2"></i> Gestión de Usuarios
                         </button>
-                        <button onclick="alert('Módulo de Reportes en construcción')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
+                        <button onclick="abrirModalReportes()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded font-bold transition shadow-lg">
                             <i class="fas fa-chart-line mr-2"></i> Reportes del Sistema
                         </button>`;
                 }
@@ -321,11 +386,14 @@
         // ==========================================
         // CITAS
         // ==========================================
+        let citasCacheadas = [];
+
         async function cargarCitas() {
             try {
                 const res = await fetch(`${API_URL}/citas`);
                 if(res.ok) {
                     const data = await res.json();
+                    citasCacheadas = data.citas;
                     renderizarTabla(data.citas);
                 }
             } catch(err) {
@@ -461,7 +529,6 @@
                 ? todosLosUsuarios
                 : todosLosUsuarios.filter(u => u.rol === filtroRolActivo);
 
-            // Re-agregar aviso si existía
             if (aviso && !lista.querySelector('#avisoDemo')) lista.insertBefore(aviso, lista.firstChild);
 
             if (filtrados.length === 0) {
@@ -494,7 +561,6 @@
 
             lista.appendChild(grid);
 
-            // Resaltar botón de filtro activo
             document.querySelectorAll('.filtro-rol-btn').forEach(btn => {
                 btn.className = 'filtro-rol-btn bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200';
             });
@@ -548,7 +614,6 @@
                 if (res.ok) {
                     mostrarMensajeRegistro(`✅ Usuario "${nuevoUsuario.usuario}" creado correctamente.`, 'ok');
                     document.getElementById('formNuevoUsuario').reset();
-                    // Agregar a la lista local para que aparezca sin recargar
                     todosLosUsuarios.push({ id: Date.now(), ...nuevoUsuario });
                     filtroRolActivo = 'todos';
                     const lista = document.getElementById('listaUsuarios');
@@ -568,6 +633,147 @@
                 btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Crear Usuario';
             }
         };
+
+        // ==========================================
+        // MÓDULO REPORTES DEL SISTEMA (ADMIN) — NUEVO
+        // ==========================================
+        async function abrirModalReportes() {
+            document.getElementById('modalReportes').classList.remove('hidden');
+            await generarReportes();
+        }
+
+        function cerrarModalReportes() {
+            document.getElementById('modalReportes').classList.add('hidden');
+        }
+
+        async function generarReportes() {
+            try {
+                const res = await fetch(`${API_URL}/citas`);
+                if (!res.ok) throw new Error("No se pudo obtener las citas");
+                const data = await res.json();
+                const citas = data.citas;
+                citasCacheadas = citas;
+
+                // --- Tarjetas resumen ---
+                const total = citas.length;
+                const ok = citas.filter(c => c.estado === 'Validada' || c.estado === 'Realizada').length;
+                const pendientes = citas.filter(c => c.estado === 'Pendiente').length;
+                const canceladas = citas.filter(c => c.estado === 'Cancelada').length;
+
+                document.getElementById('repTotalCitas').innerText = total;
+                document.getElementById('repCitasOk').innerText = ok;
+                document.getElementById('repCitasPendientes').innerText = pendientes;
+                document.getElementById('repCitasCanceladas').innerText = canceladas;
+
+                // --- Gráfico por estado ---
+                const conteoEstados = {};
+                citas.forEach(c => { conteoEstados[c.estado] = (conteoEstados[c.estado] || 0) + 1; });
+                const coloresEstado = {
+                    'Pendiente': 'bg-yellow-500',
+                    'Validada': 'bg-emerald-500',
+                    'Realizada': 'bg-blue-500',
+                    'Cancelada': 'bg-red-500'
+                };
+                const contEstados = document.getElementById('graficoEstados');
+                contEstados.innerHTML = '';
+                if (total === 0) {
+                    contEstados.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">No hay datos de citas todavía.</p>';
+                } else {
+                    Object.entries(conteoEstados).sort((a,b) => b[1]-a[1]).forEach(([estado, cantidad]) => {
+                        const porcentaje = Math.round((cantidad / total) * 100);
+                        const color = coloresEstado[estado] || 'bg-slate-400';
+                        contEstados.innerHTML += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-semibold text-slate-700">${estado}</span>
+                                    <span class="text-slate-500">${cantidad} (${porcentaje}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                    <div class="${color} h-3 rounded-full transition-all" style="width:${porcentaje}%"></div>
+                                </div>
+                            </div>`;
+                    });
+                }
+
+                // --- Gráfico por doctor ---
+                const conteoDoctores = {};
+                citas.forEach(c => { conteoDoctores[c.doctor] = (conteoDoctores[c.doctor] || 0) + 1; });
+                const maxDoctor = Math.max(1, ...Object.values(conteoDoctores));
+                const contDoctores = document.getElementById('graficoDoctores');
+                contDoctores.innerHTML = '';
+                if (Object.keys(conteoDoctores).length === 0) {
+                    contDoctores.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">No hay datos de doctores todavía.</p>';
+                } else {
+                    Object.entries(conteoDoctores).sort((a,b) => b[1]-a[1]).forEach(([doctor, cantidad]) => {
+                        const porcentaje = Math.round((cantidad / maxDoctor) * 100);
+                        contDoctores.innerHTML += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-semibold text-slate-700 truncate pr-2">${doctor}</span>
+                                    <span class="text-slate-500 shrink-0">${cantidad} cita${cantidad === 1 ? '' : 's'}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                    <div class="bg-indigo-500 h-3 rounded-full transition-all" style="width:${porcentaje}%"></div>
+                                </div>
+                            </div>`;
+                    });
+                }
+
+                // --- Tabla de pacientes frecuentes ---
+                const conteoPacientes = {};
+                citas.forEach(c => { conteoPacientes[c.paciente] = (conteoPacientes[c.paciente] || 0) + 1; });
+                const rankingPacientes = Object.entries(conteoPacientes).sort((a,b) => b[1]-a[1]).slice(0, 10);
+                const contPacientes = document.getElementById('tablaPacientesFrecuentes');
+
+                if (rankingPacientes.length === 0) {
+                    contPacientes.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">No hay datos de pacientes todavía.</p>';
+                } else {
+                    let filas = rankingPacientes.map(([paciente, cantidad], i) => `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="py-2 px-3 text-slate-400 font-bold">#${i + 1}</td>
+                            <td class="py-2 px-3 text-slate-700">${paciente}</td>
+                            <td class="py-2 px-3 text-right font-semibold text-blue-600">${cantidad}</td>
+                        </tr>`).join('');
+                    contPacientes.innerHTML = `
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="text-slate-500 text-xs uppercase border-b">
+                                    <th class="py-2 px-3 text-left">#</th>
+                                    <th class="py-2 px-3 text-left">Paciente</th>
+                                    <th class="py-2 px-3 text-right">Citas</th>
+                                </tr>
+                            </thead>
+                            <tbody>${filas}</tbody>
+                        </table>`;
+                }
+
+            } catch (error) {
+                console.error("Error generando reportes:", error);
+                document.getElementById('graficoEstados').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error al cargar los datos.</p>';
+            }
+        }
+
+        function exportarReporteCSV() {
+            if (!citasCacheadas || citasCacheadas.length === 0) {
+                alert("No hay datos de citas para exportar.");
+                return;
+            }
+            const encabezados = ['ID', 'Paciente', 'Doctor', 'Fecha', 'Motivo', 'Estado'];
+            const filas = citasCacheadas.map(c => [c.id, c.paciente, c.doctor, c.fecha, (c.motivo || '').replace(/,/g, ';'), c.estado]);
+            let csv = encabezados.join(',') + '\n';
+            csv += filas.map(f => f.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            const fecha = new Date().toISOString().slice(0, 10);
+            enlace.download = `reporte_citas_healthsync_${fecha}.csv`;
+            document.body.appendChild(enlace);
+            enlace.click();
+            document.body.removeChild(enlace);
+            URL.revokeObjectURL(url);
+        }
 
         // ==========================================
         // NUEVA CITA (PACIENTE)
